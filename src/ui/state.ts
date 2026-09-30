@@ -22,6 +22,8 @@ export type Highlight = 'identity' | 'conservation' | 'residue' | 'none';
 export type ResidueScheme = 'clustalx' | 'zappo' | 'taylor' | 'hydrophobicity' | 'lehninger' | 'nucleotide';
 
 export interface ViewSettings {
+  /** 'detail' = residue-level viewer, 'glance' = whole alignment summarised on one screen. */
+  displayMode: 'detail' | 'glance';
   // ---- layout ----
   residuesPerLine: number; // 0 = fit to window
   groupSize: number; // 0 = no grouping
@@ -117,6 +119,7 @@ export const FONT_CHOICES: { label: string; value: string }[] = [
 ];
 
 export const DEFAULT_VIEW: ViewSettings = {
+  displayMode: 'detail',
   residuesPerLine: 0,
   groupSize: 10,
   groupGap: 8,

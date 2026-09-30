@@ -11,6 +11,7 @@ import { exportPNG, exportSVG, exportText } from './ui/export';
 import { buildInputPanel } from './ui/inputPanel';
 import { buildSettings } from './ui/settingsPanel';
 import { CATEGORIES, CATEGORY_LABEL, loadState, persist, recordsSignature } from './ui/state';
+import { GlancePanel } from './ui/glancePanel';
 import { renderStats } from './ui/statsPanel';
 import { align as runInWorker } from './worker/client';
 
@@ -23,6 +24,19 @@ let lastViewport: [number, number] | undefined;
 let running = false;
 
 const viewer = new AlignmentViewer($('viewer-scroll'), $('viewer-inner'), $('tooltip'));
+const glance = new GlancePanel($('glance'), $('tooltip'), {
+  jumpTo: (col) => {
+    setDisplayMode('detail');
+    // wait for the detail view to lay out before scrolling
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (!model) return;
+        viewer.scrollToColumn(Math.max(model.c0, Math.min(model.c1 - 1, col)));
+        $('detail-zone').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }),
+    );
+  },
+});
 
 // ---------------------------------------------------------------- theme
 function applyTheme(t: string | null) {
@@ -43,7 +57,10 @@ $('theme-toggle').addEventListener('click', () => {
   } catch {
     /* ignore */
   }
-  if (model) drawOv();
+  if (model) {
+    drawOv();
+    glance.render();
+  }
 });
 
 // ---------------------------------------------------------------- input → alignment
@@ -195,10 +212,49 @@ function renderResult() {
   const warn = $('warnings');
   warn.replaceChildren(...aln.warnings.map((w) => h('div', { class: 'warning' }, w)));
   renderLegend();
-  viewer.setModel(model);
-  drawOv();
+  applyDisplayMode();
+  if (st.view.displayMode === 'glance') {
+    glance.setModel(model);
+    viewer.setModel(null);
+  } else {
+    viewer.setModel(model);
+    drawOv();
+  }
   renderStatsWithFocus();
 }
+
+function applyDisplayMode() {
+  const g = st.view.displayMode === 'glance';
+  $('glance-zone').hidden = !g;
+  $('detail-zone').hidden = g;
+  $('legend').hidden = g;
+  for (const [id, on] of [
+    ['mode-detail', !g],
+    ['mode-glance', g],
+  ] as const) {
+    const b = $(id);
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+  }
+}
+
+function setDisplayMode(mode: 'detail' | 'glance') {
+  if (st.view.displayMode === mode) return;
+  st.view.displayMode = mode;
+  persist(st);
+  renderResult();
+}
+
+$('mode-detail').addEventListener('click', () => setDisplayMode('detail'));
+$('mode-glance').addEventListener('click', () => setDisplayMode('glance'));
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'g' && e.key !== 'G') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target as HTMLElement;
+  if (t.closest('input, textarea, select, [contenteditable]')) return;
+  if (!st.alignment) return;
+  setDisplayMode(st.view.displayMode === 'glance' ? 'detail' : 'glance');
+});
 
 function renderStatsWithFocus() {
   if (!model) return;
@@ -280,8 +336,11 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = window.setTimeout(() => {
     if (!model) return;
-    if (st.view.residuesPerLine === 0) viewer.rebuild();
-    drawOv();
+    if (st.view.displayMode === 'glance') glance.render();
+    else {
+      if (st.view.residuesPerLine === 0) viewer.rebuild();
+      drawOv();
+    }
   }, 150);
 });
 
