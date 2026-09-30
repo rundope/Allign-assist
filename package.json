@@ -1,0 +1,21 @@
+{
+  "name": "align-assist",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Readable, customizable DNA/protein sequence alignment viewer (pairwise, reference-anchored and progressive MSA).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "gen:matrices": "node scripts/gen-matrices.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.9",
+    "vite": "^8.3.1",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^5.0.2"
+  }
+}
