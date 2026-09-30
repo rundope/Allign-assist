@@ -1,8 +1,15 @@
-# Align Assist user manual
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/spoonbills-dark.png">
+    <img src="images/spoonbills.png" alt="Spoonbills" width="88">
+  </picture>
+</p>
+
+# Allign-assist user manual
 
 [한국어](manual.ko.md) · Web app: <https://rundope.github.io/Allign-assist/>
 
-Align Assist shows DNA, RNA and protein sequence alignments in a **readable** way. Colours
+Allign-assist shows DNA, RNA and protein sequence alignments in a **readable** way. Colours
 show where and how well a sequence matches a reference and where several sequences agree
 or differ, and agreement is also measured by residue properties. Attach Sanger sequencing
 results (AB1) to see the signal and quality behind every base.

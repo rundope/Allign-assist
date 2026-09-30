@@ -1,5 +1,5 @@
 {
-  "name": "align-assist",
+  "name": "allign-assist",
   "private": true,
   "version": "0.1.0",
   "description": "Readable, customizable DNA/protein sequence alignment viewer (pairwise, reference-anchored and progressive MSA).",

@@ -18,6 +18,7 @@
   --tr-g: #202020;
   --tr-t: #d7301f;
   --text: #1f2328;
+  --brand-ink: #15233a; /* Spoonbills logo */
   --muted: #667085;
   --accent: #2f6fdb;
   --accent-soft: #e6eefc;
@@ -54,6 +55,7 @@
     --tr-g: #e2e2e2;
     --tr-t: #ff6b5b;
     --text: #e6e8eb;
+    --brand-ink: #dfe6f1;
     --muted: #9aa4b2;
     --accent: #5b93f0;
     --accent-soft: #1d2b44;
@@ -79,6 +81,7 @@
   --st-sub-text: #ff8b8e;
   --st-ins: #9d62de;
   --text: #e6e8eb;
+  --brand-ink: #dfe6f1;
   --muted: #9aa4b2;
   --accent: #5b93f0;
   --accent-soft: #1d2b44;
@@ -145,19 +148,15 @@ kbd {
   gap: 8px;
   font-size: 16px;
 }
+/* Spoonbills logo, drawn as a mask so it takes the theme's ink colour */
 .logo {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: linear-gradient(var(--accent), var(--accent)) padding-box;
-  position: relative;
-}
-.logo::after {
-  content: '';
-  position: absolute;
-  inset: 5px 4px;
-  background: repeating-linear-gradient(to bottom, #fff 0 3px, transparent 3px 5px);
-  border-radius: 2px;
+  width: 34px;
+  height: 30px;
+  margin: -4px 0; /* taller than the text, but keeps the top bar height */
+  flex: none;
+  background: var(--brand-ink);
+  -webkit-mask: url('./assets/spoonbills.png') center / contain no-repeat;
+  mask: url('./assets/spoonbills.png') center / contain no-repeat;
 }
 .tagline {
   color: var(--muted);

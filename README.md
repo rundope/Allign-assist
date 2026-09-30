@@ -1,4 +1,15 @@
-# Align Assist
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/spoonbills-dark.png">
+    <img src="docs/images/spoonbills.png" alt="Spoonbills" width="88">
+  </picture>
+</p>
+
+# Allign-assist
+
+[한국어](#한국어) · [English](#english)
+
+## 한국어
 
 DNA·RNA·단백질 서열 정렬을 **읽기 쉽게** 보여주는 뷰어입니다. Serial Cloner·UniProt Align을 참고했고,
 가독성과 사용자 조절 범위를 넓히는 데 초점을 맞췄습니다.
@@ -13,7 +24,7 @@ DNA·RNA·단백질 서열 정렬을 **읽기 쉽게** 보여주는 뷰어입니
 
 화면 오른쪽 위의 `한국어 | English` 버튼으로 UI 언어를 바꿀 수 있습니다. 처음 열 때는 브라우저 언어를 따르고, 고른 언어는 브라우저에 저장됩니다.
 
-## 실행
+### 실행
 
 ```bash
 npm install
@@ -32,7 +43,7 @@ npm run build && npm i --no-save playwright && npx playwright install chromium &
 
 `dist/index.html`은 서버 없이 더블클릭만으로 열리고 오프라인에서도 동작합니다. 서열은 브라우저 밖으로 전송되지 않습니다.
 
-## 기능 구성
+### 기능 구성
 
 | 영역 | 내용 |
 |---|---|
@@ -48,7 +59,7 @@ npm run build && npm i --no-save playwright && npx playwright install chromium &
 | 통계 | Identity / Similarity / Gaps / Coverage / 매칭 위치 / Score, 물성 기준 일치도, 서열별 요약표, identity matrix |
 | 내보내기 | SVG (벡터), PNG (2×), 정렬 FASTA, Clustal `.aln`, 통계 CSV |
 
-## 구조
+### 구조
 
 ```
 src/core/      정렬·통계 엔진 (DOM 의존성 없음, Web Worker에서 실행)
@@ -65,25 +76,115 @@ src/i18n.ts    언어 전환. 한국어 원문이 key이고 영어 번역은 src
 
 UI 문자열은 `t('한국어 원문 {0}', 값)` 형태로 씁니다. `tests/i18n.test.ts`는 모든 한국어 문자열에 영어 번역이 있는지, placeholder가 맞는지, 쓰이지 않는 번역이 남아 있지 않은지 검사합니다.
 
-## 정확성 검증
+### 정확성 검증
 
 - `tests/crosscheck.test.ts`: 무작위 서열 200쌍(DNA/단백질 × 4 모드 × gap 설정)의 점수를 **Biopython 1.88 `PairwiseAligner`** 결과와 비교합니다. 또 traceback 경로를 독립적으로 재채점해서 보고된 점수와 같은지 확인합니다.
 - `tests/abif.test.ts`: AB1 파서가 Biopython 테스트 파일(3100.ab1, 3730.ab1)에서 Biopython 과 같은 염기 호출, 품질값, peak 위치, 4채널 신호를 읽는지 확인합니다.
 - 치환 행렬은 NCBI 원본 파일(`vendor/matrices`, Biopython 배포본)에서 생성합니다. 생성할 때 대칭성도 검사합니다.
 
-## 지표 정의
+### 지표 정의
 
 - **겹침 구간**: 두 서열이 모두 잔기를 가진 첫 열부터 마지막 열까지입니다. 말단 overhang은 빠지고 내부 gap은 포함됩니다.
 - **Identity** = 동일 잔기 수 / 겹침 구간 열 수. 정렬쌍 기준 값과 EMBOSS 기준(전체 정렬 길이) 값은 툴팁과 CSV에 함께 나옵니다.
 - **Similarity** (단백질) = 치환 행렬 점수가 0보다 큰 쌍(동일 포함) / 겹침 구간 열 수. EMBOSS와 같은 기준입니다.
 - DNA에서 **유사**는 transition(A↔G, C↔T)을 뜻합니다. U와 T는 같은 염기로 취급합니다.
 
-## 한계
+### 한계
 
 - DP 메모리는 셀당 1 byte이고 최대 1.5억 셀까지 계산합니다(예: 10 kb × 15 kb). 이보다 긴 게놈 규모 서열은 아직 지원하지 않습니다.
 - Progressive MSA는 반복 정제(iterative refinement) 없이 한 번만 정렬합니다. 서열이 수십 개 이상이거나 먼 관계면 Clustal Omega / MAFFT보다 정확도가 낮을 수 있습니다.
 - 예제 서열은 모두 **합성 데이터**이며 실제 유전자·단백질이 아닙니다.
 
-## 라이선스
+### 라이선스
 
-[MIT License](LICENSE). 함께 배포하는 제3자 자료(NCBI 치환 행렬, Biopython 테스트용 AB1 파일)의 출처와 라이선스는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 있습니다.
+[MIT License](LICENSE). 단, Spoonbills 로고(`src/assets/`, `docs/images/spoonbills*.png`)는 MIT 라이선스 대상이 아니며 Spoonbills 에 권리가 있습니다. 함께 배포하는 제3자 자료(NCBI 치환 행렬, Biopython 테스트용 AB1 파일)의 출처와 라이선스는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 있습니다.
+
+## English
+
+A viewer that makes DNA, RNA and protein sequence alignments **easy to read**. It takes Serial Cloner and
+UniProt Align as references and puts readability and user control first.
+
+- See **where and how well** your sequence matches a reference (Fit mode, automatic strand detection).
+- Colour **where 2–N similar sequences agree and differ** (pairwise, reference-anchored, progressive MSA).
+- Measure agreement **by residue properties** as well: Clustal groups, Lehninger's five classes, charge and hydropathy for proteins; purine/pyrimidine, strong/weak, amino/keto and Ts/Tv for DNA.
+
+**Use it now:** https://rundope.github.io/Allign-assist/
+
+**User manual:** [English](docs/manual.en.md) · [한국어](docs/manual.ko.md)
+
+Switch the interface language with the `한국어 | English` buttons at the top right. The first visit follows the browser language, and your choice is remembered in the browser.
+
+### Running
+
+```bash
+npm install
+npm run dev      # dev server
+npm run build    # dist/index.html — one file with all JS, CSS and the Worker inlined
+npm test         # unit tests + Biopython cross-checks
+```
+
+Retake the manual screenshots (`docs/images/`) when the UI changes:
+
+```bash
+npm run build && npm i --no-save playwright && npx playwright install chromium && node scripts/screenshots.mjs
+```
+
+Pushing to `main` runs `.github/workflows/pages.yml`, which tests, builds and deploys to GitHub Pages.
+
+`dist/index.html` opens by double-clicking, without a server, and works offline. Sequences never leave the browser.
+
+### Features
+
+| Area | What it does |
+|---|---|
+| Input | Editable sequence cards; FASTA / GenBank / EMBL / plain text; drag and drop; paste a multi-record FASTA at once; four synthetic examples |
+| Alignment | Gotoh affine-gap DP in four modes: Global (Needleman-Wunsch), Semi-global (free end gaps), Fit (place a sequence inside the reference), Local (Smith-Waterman) |
+| Multiple sequences | Reference-anchored aligns each sequence to the reference and merges them on reference coordinates. Progressive MSA aligns profile to profile along a UPGMA guide tree |
+| Scoring | BLOSUM45/62/80, PAM250, NUC.4.4 (EDNAFULL, IUPAC), or your own match/mismatch; adjustable gap open/extend |
+| Layout | Residues per line (0 fits the window), column spacing, row spacing, block spacing, groups of 10, font, size and weight |
+| Colours | Four highlighting modes (identical/similar/mismatch/indel/gap, column conservation shading, six residue property schemes, none). Background and text colour per category, four presets, and a choice of comparison target (any sequence or the consensus) |
+| Display | Ruler (reference coordinates or column numbers), start/end numbers, consensus row, conservation marks `* : .`, per-column % identity bars, dots for identical residues, hidden end gaps, overlap-only view |
+| Navigation | Overview map (click to jump), and a tooltip with residue, position, properties and column statistics |
+| AB1 chromatograms | Attach an ABIF (.ab1) file with the waveform icon on a DNA card, or open an .ab1 file directly to turn its base calls into a new sequence. The trace is drawn right above the alignment row, each peak in the column of its letter, and hovering a residue shows the four-channel trace, base calls and Phred quality (QV) around it. Trimmed, edited or reverse-complemented sequences are matched to the base calls. Bases below the quality threshold (QV 20 by default) get an orange dotted underline |
+| Statistics | Identity / Similarity / Gaps / Coverage / match position / Score, property-based agreement, a per-sequence table, identity matrix |
+| Export | SVG (vector), PNG (2×), aligned FASTA, Clustal `.aln`, statistics CSV |
+
+### Layout of the code
+
+```
+src/core/      alignment and statistics engine (no DOM; runs in a Web Worker)
+  pairwise.ts    Gotoh DP (4 modes), 1 byte/cell traceback
+  msa.ts         reference-anchored merge, UPGMA, profile alignment
+  stats.ts       pair / column / identity-matrix statistics
+  properties.ts  amino-acid and nucleotide property classes
+  matrices.ts    NCBI matrices (matrices.generated.ts is written by scripts/gen-matrices.mjs)
+src/render/    RenderModel (cell classes and styles) → SVG blocks, overview canvas, lazy viewer
+src/ui/        input, settings and statistics panels, export, saved state (localStorage)
+src/worker/    alignment Web Worker and its client (falls back to the main thread without Workers)
+src/i18n.ts    language switch. Korean source strings are the keys; English lives in src/i18n.en.ts
+```
+
+UI strings are written as `t('한국어 원문 {0}', value)`. `tests/i18n.test.ts` checks that every Korean string has an English translation, that placeholders match, and that no unused translations are left.
+
+### Verification
+
+- `tests/crosscheck.test.ts` compares scores for 200 random pairs (DNA/protein × 4 modes × gap settings) with **Biopython 1.88 `PairwiseAligner`**, and independently re-scores each traceback to confirm it matches the reported score.
+- `tests/abif.test.ts` checks that the AB1 parser reads the same base calls, quality values, peak positions and four-channel traces as Biopython from its test files (3100.ab1, 3730.ab1).
+- Substitution matrices are generated from the original NCBI files (`vendor/matrices`, as shipped with Biopython) and checked for symmetry.
+
+### Definitions
+
+- **Overlap**: from the first to the last column where both sequences have a residue. End overhangs are excluded; internal gaps are included.
+- **Identity** = identical residues / overlap columns. The per-aligned-pair value and the EMBOSS value (whole alignment length) also appear in the tooltip and the CSV.
+- **Similarity** (protein) = pairs with a positive substitution score (identical included) / overlap columns, as in EMBOSS.
+- For DNA, **similar** means a transition (A↔G, C↔T). U and T count as the same base.
+
+### Limitations
+
+- The DP uses 1 byte per cell and computes up to 150 million cells (e.g. 10 kb × 15 kb). Genome-scale sequences are not supported yet.
+- Progressive MSA aligns once, without iterative refinement. With dozens of sequences or distant relatives it can be less accurate than Clustal Omega or MAFFT.
+- All example sequences are **synthetic** and are not real genes or proteins.
+
+### License
+
+[MIT License](LICENSE). The Spoonbills logo (`src/assets/`, `docs/images/spoonbills*.png`) is not covered by the MIT License; all rights to it stay with Spoonbills. Sources and licenses of bundled third-party material (NCBI substitution matrices, Biopython AB1 test files) are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
