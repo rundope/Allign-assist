@@ -24,7 +24,7 @@ let lastViewport: [number, number] | undefined;
 let running = false;
 
 const viewer = new AlignmentViewer($('viewer-scroll'), $('viewer-inner'), $('tooltip'));
-const glance = new GlancePanel($('glance'), $('tooltip'), {
+const glance = new GlancePanel($('glance'), {
   jumpTo: (col) => {
     setDisplayMode('detail');
     // wait for the detail view to lay out before scrolling
@@ -127,6 +127,9 @@ async function runAlignment() {
     // refresh the cards (strand decisions) unless the user is typing in one
     if (!$('input-panel').contains(document.activeElement)) rebuildInputPanel();
     renderResult();
+    // the glance view is sized to the window; show it whole
+    if (st.view.displayMode === 'glance' && !$('input-panel').contains(document.activeElement))
+      $('glance-zone').scrollIntoView({ block: 'start' });
   } catch (e) {
     const msg = (e as Error).message;
     if (msg !== 'cancelled') toast(`정렬 실패: ${msg}`, 'error');
@@ -243,6 +246,8 @@ function setDisplayMode(mode: 'detail' | 'glance') {
   st.view.displayMode = mode;
   persist(st);
   renderResult();
+  // the glance view is sized to the window, so bring it fully into view
+  if (mode === 'glance') $('glance-zone').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 $('mode-detail').addEventListener('click', () => setDisplayMode('detail'));
