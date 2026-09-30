@@ -161,6 +161,8 @@ export interface AppState {
   /** Records snapshot used for the current alignment (to detect stale results). */
   alignedSignature: string;
   statsFocusRow: number | null;
+  /** True when nothing was saved from an earlier visit. */
+  firstRun: boolean;
 }
 
 const LS_KEY = 'align-assist:v1';
@@ -203,6 +205,7 @@ export function loadState(): AppState {
     alignment: null,
     alignedSignature: '',
     statsFocusRow: null,
+    firstRun: saved === null,
   };
 }
 
