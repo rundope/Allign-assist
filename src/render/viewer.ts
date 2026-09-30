@@ -2,7 +2,8 @@
 // hover tooltip + column highlight.
 import { AA_CLASS_LABEL, AA_CLASS, KYTE_DOOLITTLE, NUC_NAMES, RESIDUE_NAMES } from '../core/properties';
 import { CATEGORY_LABEL } from '../ui/state';
-import { categorize, residueAt, type RenderModel } from './model';
+import { chromatogramSVG, qualityClass } from './chromatogram';
+import { categorize, residueAt, traceAt, type RenderModel } from './model';
 import { blockRange, blockSVG, cellAt, cellX, computeGeometry, type Geometry } from './svg';
 
 export class AlignmentViewer {
@@ -48,6 +49,9 @@ export class AlignmentViewer {
     const geo = computeGeometry(m, this.availableWidth);
     this.geo = geo;
     this.inner.style.background = m.view.paperColor;
+    this.inner.classList.toggle('block-sep', m.view.blockSeparator);
+    this.inner.style.setProperty('--block-gap', `${Math.max(0, m.view.blockGap)}px`);
+    this.inner.style.setProperty('--block-sep-color', m.view.mutedColor);
     this.inner.style.width = `${geo.width + 24}px`;
     const frag = document.createDocumentFragment();
     for (let b = 0; b < geo.nBlocks; b++) {
@@ -174,6 +178,19 @@ export class AlignmentViewer {
         if (name) lines.push(`<div class="tt-sub">${esc(name)}</div>`);
         if (!m.nucleotide && AA_CLASS[ch])
           lines.push(`<div class="tt-sub">${esc(AA_CLASS_LABEL[AA_CLASS[ch]])} · KD ${KYTE_DOOLITTLE[ch].toFixed(1)}</div>`);
+        const tr = traceAt(m, r, c);
+        if (tr) {
+          const q = tr.t.chrom.quality[tr.idx];
+          const qc = q === undefined ? null : qualityClass(q);
+          lines.push(
+            `<div class="tt-trace"><div class="tt-trace-head"><b>AB1</b> ${esc(tr.t.fileName)} · 염기 #${tr.idx + 1}/${tr.t.chrom.bases.length}` +
+              (qc ? ` · <span class="qv qv-${qc.cls}">QV ${q} ${qc.label}</span>` : '') +
+              `</div>${chromatogramSVG(tr.t.chrom, tr.idx, tr.reverse)}` +
+              `<div class="tt-sub">굵은 글자가 이 위치의 호출 염기 · 아래 막대는 품질값(QV)${tr.reverse ? ' · 역상보 방향으로 표시' : ''}</div></div>`,
+          );
+        } else if (m.traces?.[r]) {
+          lines.push('<div class="tt-sub">이 잔기에 대응하는 AB1 peak 가 없습니다 (직접 입력한 염기).</div>');
+        }
       }
       if (m.view.highlight === 'identity') {
         const cat = categorize(m, r, c);

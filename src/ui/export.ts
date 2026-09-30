@@ -90,7 +90,7 @@ export function clustal(m: RenderModel): string {
 export function statsCSV(m: RenderModel): string {
   const refRow = m.refRow >= 0 ? m.refRow : m.aln.referenceIndex;
   const ref = m.aln.rows[refRow];
-  const header = ['reference', 'sequence', 'strand', 'identity_overlap_pct', 'identity_pairs_pct', 'similarity_pct', 'identical', 'similar', 'pairs', 'overlap_columns', 'gap_positions', 'gap_opens', 'coverage_pct', 'ref_start', 'ref_end', 'seq_start', 'seq_end', 'score'];
+  const header = ['reference', 'sequence', 'strand', 'identity_overlap_pct', 'identity_pairs_pct', 'identity_emboss_pct', 'similarity_pct', 'identical', 'similar', 'pairs', 'overlap_columns', 'gap_positions', 'gap_opens', 'insertions', 'inserted_residues', 'deletions', 'deleted_residues', 'coverage_pct', 'ref_start', 'ref_end', 'seq_start', 'seq_end', 'score'];
   const propKeys = statsAgainst(m, refRow)[0]?.stats.properties.map((p) => p.key) ?? [];
   header.push(...propKeys.map((k) => `${k}_agree_pct`));
   const q = (s: string) => `"${s.replace(/"/g, '""')}"`;
@@ -104,6 +104,7 @@ export function statsCSV(m: RenderModel): string {
         r.strand === 1 ? '+' : '-',
         pct(s.identical, s.overlapColumns).toFixed(2),
         pct(s.identical, s.pairs).toFixed(2),
+        pct(s.identical, s.columns).toFixed(2),
         pct(s.similar, s.overlapColumns).toFixed(2),
         s.identical,
         s.similar,
@@ -111,6 +112,10 @@ export function statsCSV(m: RenderModel): string {
         s.overlapColumns,
         s.gapPositions,
         s.gapOpens,
+        s.insEvents,
+        s.insPositions,
+        s.delEvents,
+        s.delPositions,
         pct(s.pairs, s.residuesB).toFixed(2),
         s.rangeA?.[0] ?? '',
         s.rangeA?.[1] ?? '',

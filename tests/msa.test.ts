@@ -84,3 +84,43 @@ describe('progressive MSA', () => {
     expect(strip(out.rows[3].aligned)).toBe(base.slice(0, 20) + 'AAA' + base.slice(20));
   });
 });
+
+describe('per-sequence strand choice', () => {
+  const ref = 'ATGACCATGATTACGCCAAGCTTGCATGCCTGCAGGTCGACTCTAGAGGATCC';
+  const frag = ref.slice(10, 40);
+  const base = { ...DEFAULT_ALIGN_SETTINGS, mode: 'fit' as const };
+
+  it("'forward' keeps the query as entered even when the reverse complement fits better", () => {
+    const out = runAlignment([rec('ref', ref), { ...rec('q', reverseComplement(frag)), strand: 'forward' }], base);
+    expect(out.rows[1].strand).toBe(1);
+    expect(out.warnings).toHaveLength(0);
+  });
+
+  it("'reverse' flips the query without a warning", () => {
+    const out = runAlignment([rec('ref', ref), { ...rec('q', reverseComplement(frag)), strand: 'reverse' }], { ...base, bothStrands: false });
+    expect(out.rows[1].strand).toBe(-1);
+    expect(strip(out.rows[1].aligned)).toBe(frag);
+    expect(out.warnings).toHaveLength(0);
+  });
+
+  it("'reverse' on the reference flips the reference row", () => {
+    const out = runAlignment([{ ...rec('ref', reverseComplement(ref)), strand: 'reverse' }, rec('q', frag)], { ...base, bothStrands: false });
+    expect(out.rows[0].strand).toBe(-1);
+    expect(strip(out.rows[0].aligned)).toBe(ref);
+    expect(out.rows[0].start).toBe(ref.length);
+    expect(out.rows[1].aligned.indexOf(frag)).toBe(10);
+  });
+
+  it('MSA honours a forced strand', () => {
+    const out = runAlignment(
+      [rec('a', ref), { ...rec('b', reverseComplement(ref)), strand: 'reverse' }, { ...rec('c', ref), strand: 'forward' }],
+      { ...base, strategy: 'msa' },
+    );
+    expect(out.rows.map((r) => r.strand)).toEqual([1, -1, 1]);
+  });
+
+  it('protein ignores the strand choice', () => {
+    const out = runAlignment([rec('a', 'MKVLAAGIVG'), { ...rec('b', 'MKVLAGIVG'), strand: 'reverse' }], base);
+    expect(out.rows[1].strand).toBe(1);
+  });
+});

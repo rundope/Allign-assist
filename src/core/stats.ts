@@ -58,6 +58,12 @@ export interface PairStats {
   /** Gap positions (one row gapped) inside the overlap, and how many separate gaps. */
   gapPositions: number;
   gapOpens: number;
+  /** Residues of B opposite gaps in A (insertions in B), and how many separate runs. */
+  insPositions: number;
+  insEvents: number;
+  /** Residues of A opposite gaps in B (deletions in B), and how many separate runs. */
+  delPositions: number;
+  delEvents: number;
   /** Residue ranges (input numbering) covered by the overlap. */
   rangeA: [number, number] | null;
   rangeB: [number, number] | null;
@@ -105,6 +111,10 @@ export function computePairStats(
   let similar = 0;
   let gapPositions = 0;
   let gapOpens = 0;
+  let insPositions = 0;
+  let insEvents = 0;
+  let delPositions = 0;
+  let delEvents = 0;
   let prevGap = '';
   // property counters
   const agree: Record<string, number> = {};
@@ -140,7 +150,13 @@ export function computePairStats(
     if (ga || gb) {
       gapPositions++;
       const side = ga ? 'a' : 'b';
-      if (prevGap !== side) gapOpens++;
+      if (ga) insPositions++;
+      else delPositions++;
+      if (prevGap !== side) {
+        gapOpens++;
+        if (ga) insEvents++;
+        else delEvents++;
+      }
       prevGap = side;
       continue;
     }
@@ -206,6 +222,10 @@ export function computePairStats(
     similar,
     gapPositions,
     gapOpens,
+    insPositions,
+    insEvents,
+    delPositions,
+    delEvents,
     rangeA: firstA > 0 ? [num(numA, firstA), num(numA, lastA)] : null,
     rangeB: firstB > 0 ? [num(numB, firstB), num(numB, lastB)] : null,
     residuesA: resA,

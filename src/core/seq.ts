@@ -2,10 +2,15 @@
 
 export type SeqType = 'dna' | 'rna' | 'protein';
 
+/** Which strand of a nucleotide sequence to align: decide automatically, as entered, or its reverse complement. */
+export type StrandMode = 'auto' | 'forward' | 'reverse';
+
 export interface SeqRecord {
   id: string;
   name: string;
   seq: string; // uppercase, no whitespace/digits/gaps
+  /** Nucleotide only; missing means 'auto'. */
+  strand?: StrandMode;
 }
 
 const NUC_STRICT = new Set('ACGTUN');

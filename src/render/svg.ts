@@ -1,7 +1,10 @@
 // Geometry and SVG generation for wrapped alignment blocks.
 // Each glyph is positioned explicitly (x list + text-anchor="middle"), so any font —
 // monospace or proportional — lines up exactly on the column grid.
-import { cellStyle, residueNumber, type RenderModel } from './model';
+import { cellStyle, residueNumber, traceAt, type RenderModel } from './model';
+
+/** Underline colour for low-quality chromatogram calls (orange: distinct from the category colours). */
+export const LOW_QV_COLOR = '#f08c00';
 
 export interface Geometry {
   font: string;
@@ -231,6 +234,21 @@ export function blockContent(geo: Geometry, m: RenderModel, b: number): string {
     flushSpan();
     out.push(...rects);
     if (spans.length) out.push(`<text y="${f1(cy)}" ${textAttrs}>${spans.join('')}</text>`);
+    // dotted underline under residues whose chromatogram quality is below the threshold
+    const tr = m.traces?.[r];
+    if (tr && v.showLowQuality && tr.chrom.quality.length) {
+      const segs: string[] = [];
+      for (let k = 0; k < count; k++) {
+        const hit = traceAt(m, r, s + k);
+        if (!hit) continue;
+        const q = tr.chrom.quality[hit.idx];
+        if (q !== undefined && q < v.qualityThreshold) {
+          const x = cellX(geo, m, k);
+          segs.push(`M${f1(x + 1)} ${f1(y + geo.cellH - 1.5)}H${f1(x + geo.tileW - 1)}`);
+        }
+      }
+      if (segs.length) out.push(`<path d="${segs.join('')}" stroke="${LOW_QV_COLOR}" stroke-width="2.2" stroke-dasharray="2 1.6"/>`);
+    }
     if (v.showNumbers) {
       const p = m.prefixes[r];
       const before = p[s];
@@ -307,7 +325,12 @@ export function fullSVG(geo: Geometry, m: RenderModel, title?: string): string {
   if (title)
     parts.push(`<text x="${pad}" y="${pad + geo.fontSize}" font-family="${esc(m.view.fontFamily)}" font-size="${geo.fontSize}" font-weight="bold" fill="${m.view.textColor}">${esc(title)}</text>`);
   for (let b = 0; b < geo.nBlocks; b++) {
-    parts.push(`<g transform="translate(${pad} ${pad + titleH + b * geo.blockStep})">${blockContent(geo, m, b)}</g>`);
+    const top = pad + titleH + b * geo.blockStep;
+    if (b > 0 && m.view.blockSeparator) {
+      const y = f1(top - Math.max(0, m.view.blockGap) / 2);
+      parts.push(`<line x1="${pad}" x2="${pad + geo.width}" y1="${y}" y2="${y}" stroke="${m.view.mutedColor}" stroke-opacity="0.6" stroke-dasharray="4 3"/>`);
+    }
+    parts.push(`<g transform="translate(${pad} ${top})">${blockContent(geo, m, b)}</g>`);
   }
   parts.push('</svg>');
   return parts.join('');

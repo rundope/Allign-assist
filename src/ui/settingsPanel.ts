@@ -125,7 +125,7 @@ export function buildSettings(host: HTMLElement, st: AppState, cb: SettingsCallb
     ),
     h('div', { class: 'hint' }, '길이 L 의 gap 비용 = open + (L−1) × extend. 기본값 10 / 0.5 는 EMBOSS needle·water 와 같습니다.'),
     nucleotideSelected
-      ? checkbox('양쪽 가닥 탐색 (역상보 자동 판단)', () => a.bothStrands, setA('bothStrands'), 'DNA 에서 역상보(reverse complement)가 더 잘 맞으면 뒤집어서 정렬하고 이름 뒤에 (rc)를 붙입니다.')
+      ? checkbox('양쪽 가닥 탐색 (역상보 자동 판단)', () => a.bothStrands, setA('bothStrands'), "가닥이 '자동'인 서열에만 적용됩니다. 역상보(reverse complement)가 더 잘 맞으면 뒤집어서 정렬하고 이름 뒤에 (rc)를 붙입니다. 서열마다 카드 아래에서 정방향/역상보를 직접 고를 수 있습니다.")
       : null,
   );
 
@@ -138,6 +138,7 @@ export function buildSettings(host: HTMLElement, st: AppState, cb: SettingsCallb
     numberInput('세로줄 간격 (잔기 사이, px)', () => v.columnGap, setV('columnGap'), { min: 0, max: 16, slider: true, hint: '0 보다 크면 잔기마다 색 타일이 분리되어 보입니다.' }),
     numberInput('가로줄 간격 (서열 행 사이, px)', () => v.rowGap, setV('rowGap'), { min: 0, max: 30, slider: true }),
     numberInput('블록 간격 (줄바꿈 사이, px)', () => v.blockGap, setV('blockGap'), { min: 0, max: 80, slider: true }),
+    checkbox('블록 사이 점선', () => v.blockSeparator, setV('blockSeparator'), '줄바꿈된 블록 사이에 점선을 그어 구간을 나눕니다. 이미지 내보내기에도 들어갑니다.'),
     h(
       'div',
       { class: 'grid2' },
@@ -278,6 +279,8 @@ export function buildSettings(host: HTMLElement, st: AppState, cb: SettingsCallb
       : null,
     checkbox("보존 기호 (* : .)", () => v.showSymbols, setV('showSymbols'), "'*' 모두 동일, ':' Clustal strong group, '.' weak group"),
     checkbox('Consensus 행', () => v.showConsensus, setV('showConsensus'), '과반(>50%)이면 대문자, 아니면 소문자'),
+    checkbox('AB1 품질이 낮은 염기 밑줄', () => v.showLowQuality, (val) => { v.showLowQuality = val; cb.viewChanged({ rebuildPanel: true }); }, 'AB1 크로마토그램을 붙인 서열에서 품질값(Phred QV)이 기준보다 낮은 염기 아래에 주황 점선을 긋습니다.'),
+    v.showLowQuality ? numberInput('품질 기준 (QV)', () => v.qualityThreshold, setV('qualityThreshold'), { min: 1, max: 60, hint: 'QV 20 = 오류 확률 1%, QV 30 = 0.1%' }) : null,
     checkbox('열별 % identity 막대', () => v.showConservation, setV('showConservation')),
     select(
       '표시 범위',
