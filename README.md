@@ -22,6 +22,12 @@ npm run build    # dist/index.html — JS·CSS·Worker가 모두 들어 있는 �
 npm test         # 단위 테스트 + Biopython 교차검증
 ```
 
+설명서의 스크린샷(`docs/images/`)은 UI가 바뀌면 다시 찍습니다.
+
+```bash
+npm run build && npm i --no-save playwright && npx playwright install chromium && node scripts/screenshots.mjs
+```
+
 `main`에 푸시하면 `.github/workflows/pages.yml`이 테스트와 빌드를 돌린 뒤 GitHub Pages에 배포합니다.
 
 `dist/index.html`은 서버 없이 더블클릭만으로 열리고 오프라인에서도 동작합니다. 서열은 브라우저 밖으로 전송되지 않습니다.
