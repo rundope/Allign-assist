@@ -31,8 +31,9 @@ results (AB1) to see the signal and quality behind every base.
 - **Offline**: in the repository run `npm install && npm run build`. This produces a single
   file, `dist/index.html`, that opens by double-clicking, without an internet connection.
 - **On first visit** an example (synthetic sequences) loads: three reads mapped onto a 600 bp
-  reference, with AB1 chromatograms on read_1 and read_3. Replace the text in the sequence
-  cards on the left to align your own sequences.
+  reference, with AB1 chromatograms on read_1 and read_3 drawn right above their rows. Replace
+  the text in the sequence cards on the left to align your own sequences. To start from an AB1
+  file, open it with **Open files** (see the example 'DNA: an AB1 read against a reference').
 
 > Your sequences never leave the browser. All computation runs on your own computer.
 
