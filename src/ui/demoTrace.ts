@@ -23,6 +23,9 @@ export interface DemoTraceOptions {
   doubtful?: number[];
   /** Bases at each read end whose quality ramps up from poor. */
   rampLength?: number;
+  /** Positions (0-based) with two overlapping peaks of similar height: the called base and
+   *  this second base (a heterozygous site). */
+  mixed?: Record<number, 'A' | 'C' | 'G' | 'T'>;
 }
 
 export function synthChromatogram(calls: string, o: DemoTraceOptions): Chromatogram {
@@ -49,10 +52,13 @@ export function synthChromatogram(calls: string, o: DemoTraceOptions): Chromatog
     const call = calls[i] as 'A' | 'C' | 'G' | 'T';
     const main = 250 + 900 * Math.max(0.15, edge) * (0.75 + rand() * 0.5);
     const called = call in acc ? call : null;
+    const second = o.mixed?.[i];
     if (doubtful.has(i)) q = 9 + Math.round(rand() * 4);
+    if (second) q = 14 + Math.round(rand() * 4);
     q = Math.max(3, Math.min(60, q));
     quality.push(q);
-    if (called) addPeak(acc[called], center, doubtful.has(i) ? main * 0.62 : main);
+    if (called) addPeak(acc[called], center, doubtful.has(i) ? main * 0.62 : second ? main * 0.56 : main);
+    if (second) addPeak(acc[second], center + (rand() - 0.5), main * 0.48);
     // background: small bumps in the other channels, larger where quality is poor
     const pool = called ? others[called] : (['A', 'C', 'G', 'T'] as const);
     for (const b of pool) addPeak(acc[b], center + (rand() - 0.5) * 3, main * (0.03 + (1 - q / 60) * 0.25) * rand());

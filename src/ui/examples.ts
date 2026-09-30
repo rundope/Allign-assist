@@ -74,6 +74,38 @@ export const EXAMPLES: Example[] = [
     ],
   },
   {
+    key: 'ab1-read',
+    label: 'DNA: AB1 read 와 레퍼런스 비교 (크로마토그램)',
+    description: 'AB1 파일 하나를 입력으로 넣어 합성 360 bp 레퍼런스와 비교합니다. read 의 크로마토그램이 정렬 줄 바로 위에 그려져, 차이가 난 자리의 peak 을 바로 확인할 수 있습니다.',
+    align: { strategy: 'reference', mode: 'fit', referenceIndex: 0, bothStrands: true },
+    records: () => {
+      const r = rng(31);
+      const ref = randomSeq(r, 'ACGT', 360);
+      const other: Record<string, string> = { A: 'C', C: 'A', G: 'T', T: 'G' };
+      const ts: Record<string, string> = { A: 'G', G: 'A', C: 'T', T: 'C' };
+      // the base calls of the AB1 file (it is loaded as the sequence, like opening an .ab1)
+      let calls = ref.slice(30, 330);
+      calls = substitute(calls, 285, other[calls[285]]); // near the read end, on a poor peak
+      calls = calls.slice(0, 215) + calls.slice(216); // one base missing
+      calls = substitute(calls, 154, ts[calls[154]]); // heterozygous: both peaks present
+      calls = substitute(calls, 74, other[calls[74]]); // clean, high-quality difference
+      return [rec('Reference (synthetic, 360 bp)', ref), rec('clone_07_F', calls)];
+    },
+    // base 75: a real difference (one tall peak). Base 155: two overlapping peaks — the called
+    // base and the reference base — as at a heterozygous site. Base 285: low quality near the
+    // read end, more likely a sequencing error. The missing base leaves a gap in the trace.
+    traces: (recs) => {
+      const ref = recs[0].seq.slice(30, 330);
+      return [
+        {
+          index: 1,
+          fileName: 'clone_07_F.ab1 (합성 예제)',
+          chrom: synthChromatogram(recs[1].seq, { seed: 13, doubtful: [284], mixed: { 154: ref[154] as 'A' | 'C' | 'G' | 'T' } }),
+        },
+      ];
+    },
+  },
+  {
     key: 'pair-dna',
     label: 'DNA: 두 변이체 비교',
     description: '길이가 다른 두 합성 DNA를 semiglobal 로 비교합니다 (transition/transversion 통계 확인용).',

@@ -280,6 +280,8 @@ export function buildSettings(host: HTMLElement, st: AppState, cb: SettingsCallb
       : null,
     checkbox(t("보존 기호 (* : .)"), () => v.showSymbols, setV('showSymbols'), t("'*' 모두 동일, ':' Clustal strong group, '.' weak group")),
     checkbox(t('Consensus 행'), () => v.showConsensus, setV('showConsensus'), t('과반(>50%)이면 대문자, 아니면 소문자')),
+    checkbox(t('AB1 크로마토그램을 서열 바로 위에 표시'), () => v.showTraces, setV('showTraces', true), t('AB1 을 붙인 서열의 정렬 줄 위에 신호 곡선을 그립니다. 각 염기의 peak 이 아래 글자와 같은 열에 오도록 맞춥니다.')),
+    v.showTraces ? numberInput(t('크로마토그램 높이'), () => v.traceHeight, setV('traceHeight'), { min: 20, max: 160, suffix: 'px' }) : null,
     checkbox(t('AB1 품질이 낮은 염기 밑줄'), () => v.showLowQuality, (val) => { v.showLowQuality = val; cb.viewChanged({ rebuildPanel: true }); }, t('AB1 크로마토그램을 붙인 서열에서 품질값(Phred QV)이 기준보다 낮은 염기 아래에 주황 점선을 긋습니다.')),
     v.showLowQuality ? numberInput(t('품질 기준 (QV)'), () => v.qualityThreshold, setV('qualityThreshold'), { min: 1, max: 60, hint: t('QV 20 = 오류 확률 1%, QV 30 = 0.1%') }) : null,
     checkbox(t('열별 % identity 막대'), () => v.showConservation, setV('showConservation')),

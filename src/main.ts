@@ -4,7 +4,7 @@ import { resolveSeqType } from './core/align';
 import type { AlignSettings } from './core/types';
 import { SCHEME_LABEL, SCHEME_LEGEND, mix } from './render/colors';
 import { buildModel, type RenderModel } from './render/model';
-import { LOW_QV_COLOR } from './render/svg';
+import { LOW_QV_COLOR, TRACE_COLOR } from './render/svg';
 import { drawOverview, overviewColumnAt, type OverviewLayout } from './render/overview';
 import { AlignmentViewer } from './render/viewer';
 import { h, toast } from './ui/dom';
@@ -276,6 +276,15 @@ function renderLegend() {
   }
   if (v.showLowQuality && hasAnyTrace() && model?.traces?.some(Boolean))
     items.push(h('span', { class: 'lg-item' }, h('span', { class: 'lg-qv', style: { borderColor: LOW_QV_COLOR } }), t('AB1 품질 QV < {0}', v.qualityThreshold)));
+  if (v.showTraces && model?.nucleotide && model.traces?.some(Boolean))
+    items.push(
+      h(
+        'span',
+        { class: 'lg-item lg-trace' },
+        t('크로마토그램'),
+        ...(['A', 'C', 'G', 'T'] as const).map((b) => h('b', { style: { color: b === 'G' ? 'var(--tr-g)' : TRACE_COLOR[b] } }, b)),
+      ),
+    );
   host.replaceChildren(...items);
 }
 

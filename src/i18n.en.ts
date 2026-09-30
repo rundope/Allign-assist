@@ -121,6 +121,15 @@ export const EN: Record<string, string> = {
   '합성 600 bp 레퍼런스에 3개 read(치환·indel 포함, 1개는 역상보)를 fit 모드로 매핑합니다. read_1 과 read_3 에는 합성 AB1 크로마토그램이 붙어 있습니다.':
     'Maps three reads (with substitutions and indels, one reverse-complemented) onto a synthetic 600 bp reference in fit mode. read_1 and read_3 carry synthetic AB1 chromatograms.',
   'read_1.ab1 (합성 예제)': 'read_1.ab1 (synthetic demo)',
+  'clone_07_F.ab1 (합성 예제)': 'clone_07_F.ab1 (synthetic demo)',
+  'DNA: AB1 read 와 레퍼런스 비교 (크로마토그램)': 'DNA: an AB1 read against a reference (chromatogram)',
+  'AB1 파일 하나를 입력으로 넣어 합성 360 bp 레퍼런스와 비교합니다. read 의 크로마토그램이 정렬 줄 바로 위에 그려져, 차이가 난 자리의 peak 을 바로 확인할 수 있습니다.':
+    'One AB1 file loaded as input and compared with a synthetic 360 bp reference. The read\'s chromatogram is drawn right above its alignment row, so the peaks behind every difference are in view.',
+  'AB1 크로마토그램을 서열 바로 위에 표시': 'Show AB1 chromatograms above the sequence',
+  'AB1 을 붙인 서열의 정렬 줄 위에 신호 곡선을 그립니다. 각 염기의 peak 이 아래 글자와 같은 열에 오도록 맞춥니다.':
+    'Draws the trace above the alignment row of every sequence with an AB1 file, with each base\'s peak in the same column as its letter.',
+  '크로마토그램 높이': 'Chromatogram height',
+  '크로마토그램': 'Chromatogram',
   'read_3.ab1 (합성 예제)': 'read_3.ab1 (synthetic demo)',
   'DNA: 두 변이체 비교': 'DNA: compare two variants',
   '길이가 다른 두 합성 DNA를 semiglobal 로 비교합니다 (transition/transversion 통계 확인용).':
