@@ -36,7 +36,14 @@ export function runAlignment(records: SeqRecord[], s: AlignSettings, onProgress?
   const scoring = scoringFor(seqType, s);
   const warnings: string[] = [];
   const pair = { scoring, gapOpen: s.gapOpen, gapExtend: s.gapExtend };
-  const tryStrands = nucleotide && s.bothStrands;
+  const rc = (seq: string) => reverseComplement(seq, seqType === 'rna');
+  const isAuto = (r: SeqRecord) => (r.strand ?? 'auto') === 'auto';
+  /** Strands to try for a record: its fixed choice, or both when automatic (and enabled). */
+  const candidateStrands = (r: SeqRecord): (1 | -1)[] => {
+    if (!nucleotide || r.strand === 'forward') return [1];
+    if (r.strand === 'reverse') return [-1];
+    return s.bothStrands ? [1, -1] : [1];
+  };
 
   let rows: AlignedRow[];
   let scores: (number | null)[] = recs.map(() => null);
@@ -45,33 +52,31 @@ export function runAlignment(records: SeqRecord[], s: AlignSettings, onProgress?
   if (s.strategy === 'reference') {
     referenceIndex = Math.min(Math.max(0, s.referenceIndex), recs.length - 1);
     const ref = recs[referenceIndex];
+    // the reference is the anchor: 'auto' keeps it as entered, 'reverse' flips it
+    const refStrand: 1 | -1 = nucleotide && ref.strand === 'reverse' ? -1 : 1;
+    const refSeq = refStrand === 1 ? ref.seq : rc(ref.seq);
     const others = recs.map((_, i) => i).filter((i) => i !== referenceIndex);
     const placements: (QueryPlacement & { strand: 1 | -1 })[] = [];
     others.forEach((qi, k) => {
-      const q = recs[qi].seq;
-      let best: { seq: string; dp: DPResult; strand: 1 | -1 } = {
-        seq: q,
-        dp: alignPairRaw(ref.seq, q, { ...pair, mode: s.mode }),
-        strand: 1,
-      };
-      if (tryStrands) {
-        const rc = reverseComplement(q, seqType === 'rna');
-        const dp = alignPairRaw(ref.seq, rc, { ...pair, mode: s.mode });
-        if (dp.score > best.dp.score) {
-          best = { seq: rc, dp, strand: -1 };
-          warnings.push(`"${recs[qi].name}" 은(는) 역상보(reverse complement) 가닥이 더 잘 맞아 뒤집어서 정렬했습니다.`);
-        }
+      const rec = recs[qi];
+      let best: { seq: string; dp: DPResult; strand: 1 | -1 } | null = null;
+      for (const strand of candidateStrands(rec)) {
+        const seq = strand === 1 ? rec.seq : rc(rec.seq);
+        const dp = alignPairRaw(refSeq, seq, { ...pair, mode: s.mode });
+        if (!best || dp.score > best.dp.score) best = { seq, dp, strand };
       }
-      placements.push(best);
+      if (best!.strand === -1 && isAuto(rec))
+        warnings.push(`"${rec.name}" 은(는) 역상보(reverse complement) 가닥이 더 잘 맞아 뒤집어서 정렬했습니다.`);
+      placements.push(best!);
       onProgress?.('레퍼런스에 정렬 중', (k + 1) / others.length);
     });
-    const merged = mergeOnReference(ref.seq, placements);
+    const merged = mergeOnReference(refSeq, placements);
     rows = [];
     scores = [];
     let q = 0;
     recs.forEach((r, i) => {
       if (i === referenceIndex) {
-        rows.push({ id: r.id, name: r.name, aligned: merged.ref, start: 1, strand: 1, length: r.seq.length });
+        rows.push({ id: r.id, name: r.name, aligned: merged.ref, start: refStrand === 1 ? 1 : r.seq.length, strand: refStrand, length: r.seq.length });
         scores.push(null);
       } else {
         const p = placements[q];
@@ -86,20 +91,26 @@ export function runAlignment(records: SeqRecord[], s: AlignSettings, onProgress?
     if (s.mode === 'local' || s.mode === 'fit') {
       warnings.push('다중 서열 정렬(progressive MSA)은 global/semiglobal 만 지원하므로 semiglobal 로 실행했습니다.');
     }
+    // the first sequence sets the orientation the others are compared against
+    const first = recs[0];
+    const firstStrand: 1 | -1 = nucleotide && first.strand === 'reverse' ? -1 : 1;
+    const firstSeq = firstStrand === 1 ? first.seq : rc(first.seq);
     const oriented = recs.map((r, i) => {
-      if (!tryStrands || i === 0) return { seq: r.seq, strand: 1 as const };
-      const rc = reverseComplement(r.seq, seqType === 'rna');
-      const small = recs[0].seq.length * r.seq.length <= 20_000_000;
+      if (i === 0) return { seq: firstSeq, strand: firstStrand };
+      const cands = candidateStrands(r);
+      if (cands.length === 1) return cands[0] === 1 ? { seq: r.seq, strand: 1 as const } : { seq: rc(r.seq), strand: -1 as const };
+      const back = rc(r.seq);
+      const small = firstSeq.length * r.seq.length <= 20_000_000;
       let useRc: boolean;
       if (small) {
-        const f = alignPairRaw(recs[0].seq, r.seq, { ...pair, mode: 'semiglobal' }).score;
-        const b = alignPairRaw(recs[0].seq, rc, { ...pair, mode: 'semiglobal' }).score;
+        const f = alignPairRaw(firstSeq, r.seq, { ...pair, mode: 'semiglobal' }).score;
+        const b = alignPairRaw(firstSeq, back, { ...pair, mode: 'semiglobal' }).score;
         useRc = b > f;
       } else {
-        useRc = kmerDistance(recs[0].seq, rc, 8) < kmerDistance(recs[0].seq, r.seq, 8);
+        useRc = kmerDistance(firstSeq, back, 8) < kmerDistance(firstSeq, r.seq, 8);
       }
       if (useRc) warnings.push(`"${r.name}" 은(는) 역상보(reverse complement) 방향으로 뒤집어서 정렬했습니다.`);
-      return useRc ? { seq: rc, strand: -1 as const } : { seq: r.seq, strand: 1 as const };
+      return useRc ? { seq: back, strand: -1 as const } : { seq: r.seq, strand: 1 as const };
     });
     const res = progressiveAlign(
       oriented.map((o) => o.seq),

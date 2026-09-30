@@ -307,7 +307,12 @@ export function fullSVG(geo: Geometry, m: RenderModel, title?: string): string {
   if (title)
     parts.push(`<text x="${pad}" y="${pad + geo.fontSize}" font-family="${esc(m.view.fontFamily)}" font-size="${geo.fontSize}" font-weight="bold" fill="${m.view.textColor}">${esc(title)}</text>`);
   for (let b = 0; b < geo.nBlocks; b++) {
-    parts.push(`<g transform="translate(${pad} ${pad + titleH + b * geo.blockStep})">${blockContent(geo, m, b)}</g>`);
+    const top = pad + titleH + b * geo.blockStep;
+    if (b > 0 && m.view.blockSeparator) {
+      const y = f1(top - Math.max(0, m.view.blockGap) / 2);
+      parts.push(`<line x1="${pad}" x2="${pad + geo.width}" y1="${y}" y2="${y}" stroke="${m.view.mutedColor}" stroke-opacity="0.6" stroke-dasharray="4 3"/>`);
+    }
+    parts.push(`<g transform="translate(${pad} ${top})">${blockContent(geo, m, b)}</g>`);
   }
   parts.push('</svg>');
   return parts.join('');

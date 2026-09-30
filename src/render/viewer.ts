@@ -48,6 +48,9 @@ export class AlignmentViewer {
     const geo = computeGeometry(m, this.availableWidth);
     this.geo = geo;
     this.inner.style.background = m.view.paperColor;
+    this.inner.classList.toggle('block-sep', m.view.blockSeparator);
+    this.inner.style.setProperty('--block-gap', `${Math.max(0, m.view.blockGap)}px`);
+    this.inner.style.setProperty('--block-sep-color', m.view.mutedColor);
     this.inner.style.width = `${geo.width + 24}px`;
     const frag = document.createDocumentFragment();
     for (let b = 0; b < geo.nBlocks; b++) {

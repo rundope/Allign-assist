@@ -29,6 +29,7 @@ export interface ViewSettings {
   columnGap: number; // 세로줄(열) 간격, px
   rowGap: number; // 가로줄(행) 간격, px
   blockGap: number; // 줄바꿈 블록 사이 간격, px
+  blockSeparator: boolean; // 블록 사이 점선
   fontFamily: string;
   fontSize: number;
   fontWeight: 'normal' | 'bold';
@@ -122,6 +123,7 @@ export const DEFAULT_VIEW: ViewSettings = {
   columnGap: 0,
   rowGap: 2,
   blockGap: 22,
+  blockSeparator: true,
   fontFamily: FONT_CHOICES[0].value,
   fontSize: 14,
   fontWeight: 'normal',
@@ -210,5 +212,5 @@ export function loadState(): AppState {
 }
 
 export function recordsSignature(records: SeqRecord[], align: AlignSettings): string {
-  return JSON.stringify([records.map((r) => [r.name, r.seq]), align]);
+  return JSON.stringify([records.map((r) => [r.name, r.seq, r.strand ?? 'auto']), align]);
 }

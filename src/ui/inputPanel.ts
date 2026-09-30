@@ -1,5 +1,5 @@
 // Sequence input: cards per sequence, file loading, bulk FASTA paste and demo data.
-import { cleanSequence, detectType, newId, parseSequences, type SeqRecord } from '../core/seq';
+import { cleanSequence, detectSetType, detectType, newId, parseSequences, type SeqRecord, type StrandMode } from '../core/seq';
 import { EXAMPLES } from './examples';
 import { h, toast } from './dom';
 import type { AppState } from './state';
@@ -198,8 +198,51 @@ function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrat
       ),
     ),
     area,
-    meta,
+    h('div', { class: 'seq-foot' }, meta, type && type !== 'Protein' && setIsNucleotide(st) ? strandControl(st, r, refStrategy ? isRef : i === 0, cb) : null),
   );
+}
+
+function setIsNucleotide(st: AppState): boolean {
+  if (st.align.seqType !== 'auto') return st.align.seqType !== 'protein';
+  const seqs = st.records.filter((x) => x.seq).map((x) => x.seq);
+  return seqs.length === 0 || detectSetType(seqs) !== 'protein';
+}
+
+/** Segmented control: align this sequence as entered, as its reverse complement, or decide automatically. */
+function strandControl(st: AppState, r: SeqRecord, isRef: boolean, cb: InputCallbacks): HTMLElement {
+  const mode: StrandMode = r.strand ?? 'auto';
+  // The reference is the anchor, so "auto" means "as entered" for it.
+  const options: { value: StrandMode; label: string; title: string }[] = [
+    ...(isRef ? [] : [{ value: 'auto' as const, label: '자동', title: '정방향과 역상보 중 레퍼런스에 더 잘 맞는 쪽을 자동으로 고릅니다.' }]),
+    { value: 'forward', label: '정방향 →', title: '입력한 방향 그대로 정렬합니다.' },
+    { value: 'reverse', label: '역상보 ←', title: '역상보(reverse complement)로 뒤집어서 정렬합니다.' },
+  ];
+  const active: StrandMode = isRef && mode === 'auto' ? 'forward' : mode;
+  const group = h(
+    'div',
+    { class: 'strand-seg', role: 'group', 'aria-label': `${r.name} 가닥 선택` },
+    ...options.map((o) =>
+      h(
+        'button',
+        {
+          type: 'button',
+          class: o.value === active ? 'on' : '',
+          'aria-pressed': o.value === active ? 'true' : 'false',
+          title: o.title,
+          onclick: () => {
+            if (r.strand === o.value) return;
+            r.strand = o.value;
+            cb.recordsChanged({ structural: true });
+          },
+        },
+        o.label,
+      ),
+    ),
+  );
+  // show what "auto" decided in the latest alignment
+  const row = mode === 'auto' && !isRef ? st.alignment?.rows.find((x) => x.id === r.id) : undefined;
+  const decided = row ? h('span', { class: `strand-result${row.strand === -1 ? ' rev' : ''}`, title: '마지막 정렬에서 자동으로 고른 방향' }, row.strand === -1 ? '→ 역상보로 판단' : '→ 정방향으로 판단') : null;
+  return h('div', { class: 'strand-wrap' }, group, decided);
 }
 
 async function addFiles(st: AppState, files: File[], cb: InputCallbacks): Promise<void> {

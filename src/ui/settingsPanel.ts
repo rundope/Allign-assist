@@ -125,7 +125,7 @@ export function buildSettings(host: HTMLElement, st: AppState, cb: SettingsCallb
     ),
     h('div', { class: 'hint' }, '길이 L 의 gap 비용 = open + (L−1) × extend. 기본값 10 / 0.5 는 EMBOSS needle·water 와 같습니다.'),
     nucleotideSelected
-      ? checkbox('양쪽 가닥 탐색 (역상보 자동 판단)', () => a.bothStrands, setA('bothStrands'), 'DNA 에서 역상보(reverse complement)가 더 잘 맞으면 뒤집어서 정렬하고 이름 뒤에 (rc)를 붙입니다.')
+      ? checkbox('양쪽 가닥 탐색 (역상보 자동 판단)', () => a.bothStrands, setA('bothStrands'), "가닥이 '자동'인 서열에만 적용됩니다. 역상보(reverse complement)가 더 잘 맞으면 뒤집어서 정렬하고 이름 뒤에 (rc)를 붙입니다. 서열마다 카드 아래에서 정방향/역상보를 직접 고를 수 있습니다.")
       : null,
   );
 
@@ -138,6 +138,7 @@ export function buildSettings(host: HTMLElement, st: AppState, cb: SettingsCallb
     numberInput('세로줄 간격 (잔기 사이, px)', () => v.columnGap, setV('columnGap'), { min: 0, max: 16, slider: true, hint: '0 보다 크면 잔기마다 색 타일이 분리되어 보입니다.' }),
     numberInput('가로줄 간격 (서열 행 사이, px)', () => v.rowGap, setV('rowGap'), { min: 0, max: 30, slider: true }),
     numberInput('블록 간격 (줄바꿈 사이, px)', () => v.blockGap, setV('blockGap'), { min: 0, max: 80, slider: true }),
+    checkbox('블록 사이 점선', () => v.blockSeparator, setV('blockSeparator'), '줄바꿈된 블록 사이에 점선을 그어 구간을 나눕니다. 이미지 내보내기에도 들어갑니다.'),
     h(
       'div',
       { class: 'grid2' },

@@ -107,6 +107,8 @@ async function runAlignment() {
     st.statsFocusRow = null;
     persist(st);
     rebuildSettingsPanel();
+    // refresh the cards (strand decisions) unless the user is typing in one
+    if (!$('input-panel').contains(document.activeElement)) rebuildInputPanel();
     renderResult();
   } catch (e) {
     const msg = (e as Error).message;
