@@ -2,7 +2,9 @@
 // taken from any database and must not be read as real genes or proteins.
 import { CLUSTAL_STRONG } from '../core/properties';
 import { newId, reverseComplement, type SeqRecord } from '../core/seq';
+import type { Chromatogram } from '../core/abif';
 import type { AlignSettings } from '../core/types';
+import { synthChromatogram } from './demoTrace';
 
 function rng(seed: number): () => number {
   let a = seed >>> 0;
@@ -38,6 +40,8 @@ export interface Example {
   description: string;
   records: () => SeqRecord[];
   align: Partial<AlignSettings>;
+  /** Synthetic chromatograms to attach, by record index. */
+  traces?: (records: SeqRecord[]) => { index: number; fileName: string; chrom: Chromatogram }[];
 }
 
 const rec = (name: string, seq: string): SeqRecord => ({ id: newId(), name, seq });
@@ -45,8 +49,8 @@ const rec = (name: string, seq: string): SeqRecord => ({ id: newId(), name, seq 
 export const EXAMPLES: Example[] = [
   {
     key: 'mapping',
-    label: 'DNA: 레퍼런스에 read 매핑',
-    description: '합성 600 bp 레퍼런스에 3개 read(치환·indel 포함, 1개는 역상보)를 fit 모드로 매핑합니다.',
+    label: 'DNA: 레퍼런스에 read 매핑 (AB1 포함)',
+    description: '합성 600 bp 레퍼런스에 3개 read(치환·indel 포함, 1개는 역상보)를 fit 모드로 매핑합니다. read_1 과 read_3 에는 합성 AB1 크로마토그램이 붙어 있습니다.',
     align: { strategy: 'reference', mode: 'fit', referenceIndex: 0, bothStrands: true },
     records: () => {
       const r = rng(11);
@@ -61,6 +65,13 @@ export const EXAMPLES: Example[] = [
       const read3 = reverseComplement(substitute(ref.slice(220, 400), 60, 'N'));
       return [rec('Demo reference (synthetic, 600 bp)', ref), rec('read_1', read1), rec('read_2 (insertion)', read2), rec('read_3 (reverse)', read3)];
     },
+    // read_1: the substitution at base 41 is a clean, high-quality peak (a real difference);
+    // the one at base 119 sits on a weak, mixed peak (more likely a sequencing error).
+    // read_3: the N is an unresolved mixed peak.
+    traces: (recs) => [
+      { index: 1, fileName: 'read_1.ab1 (합성 예제)', chrom: synthChromatogram(recs[1].seq, { seed: 7, doubtful: [118] }) },
+      { index: 3, fileName: 'read_3.ab1 (합성 예제)', chrom: synthChromatogram(recs[3].seq, { seed: 9, doubtful: [recs[3].seq.indexOf('N')] }) },
+    ],
   },
   {
     key: 'pair-dna',

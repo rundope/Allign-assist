@@ -13,7 +13,7 @@ import { buildInputPanel } from './ui/inputPanel';
 import { buildSettings } from './ui/settingsPanel';
 import { CATEGORIES, CATEGORY_LABEL, loadState, persist, recordsSignature } from './ui/state';
 import { renderStats } from './ui/statsPanel';
-import { hasAnyTrace, restoreTraces, traceFor } from './ui/traceStore';
+import { attachTrace, detachTrace, hasAnyTrace, restoreTraces, traceFor } from './ui/traceStore';
 import { align as runInWorker } from './worker/client';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -149,7 +149,10 @@ function rebuildInputPanel() {
 function loadExample(key: string, quiet = false) {
   const ex = EXAMPLES.find((x) => x.key === key);
   if (!ex) return;
+  for (const r of st.records) detachTrace(r.id);
   st.records = ex.records();
+  // demo chromatograms (synthetic) so the AB1 feature is visible without a file at hand
+  for (const t of ex.traces?.(st.records) ?? []) attachTrace(st.records[t.index].id, { fileName: t.fileName, chrom: t.chrom });
   Object.assign(st.align, ex.align);
   st.view.compareTo = 'row';
   st.view.compareRow = ex.align.referenceIndex ?? 0;
@@ -308,5 +311,5 @@ if (nonEmpty().length >= 2) scheduleAuto();
 else if (st.firstRun) {
   // first visit: open on a worked example (synthetic data) instead of an empty screen
   loadExample('mapping', true);
-  toast('예제(합성 서열)를 불러왔습니다. 왼쪽에서 내 서열로 바꿔 넣으세요.');
+  toast('예제(합성 서열)를 불러왔습니다. read_1·read_3 에는 AB1 크로마토그램이 붙어 있으니 정렬 보기에서 그 염기에 마우스를 올려 보세요.');
 }
