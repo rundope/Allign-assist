@@ -1,5 +1,7 @@
 // Sequence input: cards per sequence, file loading, bulk FASTA paste and demo data.
+import { qualitySummary } from '../core/trace';
 import { cleanSequence, detectSetType, detectType, newId, parseSequences, type SeqRecord, type StrandMode } from '../core/seq';
+import { attachTrace, detachTrace, getTrace, readAb1, traceFor } from './traceStore';
 import { EXAMPLES } from './examples';
 import { h, toast } from './dom';
 import type { AppState } from './state';
@@ -12,7 +14,7 @@ export interface InputCallbacks {
 const TYPE_LABEL = { dna: 'DNA', rna: 'RNA', protein: 'Protein' } as const;
 
 export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallbacks): void {
-  const fileInput = h('input', { type: 'file', multiple: true, accept: '.fa,.fasta,.fas,.fna,.faa,.ffn,.txt,.seq,.gb,.gbk,.genbank,.embl,.aln', hidden: true }) as HTMLInputElement;
+  const fileInput = h('input', { type: 'file', multiple: true, accept: '.fa,.fasta,.fas,.fna,.faa,.ffn,.txt,.seq,.gb,.gbk,.genbank,.embl,.aln,.ab1,.abi,.ab', hidden: true }) as HTMLInputElement;
   fileInput.addEventListener('change', async () => {
     await addFiles(st, [...(fileInput.files ?? [])], cb);
     fileInput.value = '';
@@ -64,6 +66,7 @@ export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallba
                 }, 3000);
                 return;
               }
+              for (const rec of st.records) detachTrace(rec.id);
               st.records.length = 0;
               cb.recordsChanged({ structural: true });
             },
@@ -114,6 +117,7 @@ export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallba
 function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrategy: boolean, cb: InputCallbacks): HTMLElement {
   const len = r.seq.length;
   const type = len ? TYPE_LABEL[detectType(r.seq)] : '';
+  const nucleotideCard = type !== 'Protein' && setIsNucleotide(st);
   const nameIn = h('input', { class: 'seq-name', value: r.name, 'aria-label': '서열 이름' }) as HTMLInputElement;
   nameIn.addEventListener('change', () => {
     r.name = nameIn.value.trim() || `Sequence ${i + 1}`;
@@ -180,6 +184,7 @@ function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrat
             isRef ? '레퍼런스' : '기준으로',
           )
         : null,
+      nucleotideCard ? ab1Button(r, cb) : null,
       h('button', { class: 'icon-btn', title: '위로', onclick: () => move(-1), disabled: i === 0 }, '↑'),
       h('button', { class: 'icon-btn', title: '아래로', onclick: () => move(1), disabled: i === st.records.length - 1 }, '↓'),
       h(
@@ -190,6 +195,7 @@ function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrat
           onclick: () => {
             const refRec = st.records[st.align.referenceIndex];
             st.records.splice(i, 1);
+            detachTrace(r.id);
             st.align.referenceIndex = Math.max(0, refRec ? st.records.indexOf(refRec) : 0);
             cb.recordsChanged({ structural: true });
           },
@@ -199,6 +205,7 @@ function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrat
     ),
     area,
     h('div', { class: 'seq-foot' }, meta, type && type !== 'Protein' && setIsNucleotide(st) ? strandControl(st, r, refStrategy ? isRef : i === 0, cb) : null),
+    nucleotideCard ? traceChip(st, r, cb) : null,
   );
 }
 
@@ -249,6 +256,14 @@ async function addFiles(st: AppState, files: File[], cb: InputCallbacks): Promis
   let added = 0;
   for (const f of files) {
     try {
+      if (isAb1(f)) {
+        const t = await readAb1(f);
+        const rec: SeqRecord = { id: newId(), name: t.chrom.sampleName || f.name.replace(/\.[^.]+$/, ''), seq: t.chrom.bases };
+        st.records.push(rec);
+        if (!attachTrace(rec.id, t)) toast('저장 공간이 부족해 AB1 은 새로고침하면 다시 올려야 합니다.', 'error');
+        added++;
+        continue;
+      }
       const text = await f.text();
       const recs = parseSequences(text, f.name.replace(/\.[^.]+$/, ''));
       if (!recs.length) toast(`${f.name}: 서열을 찾지 못했습니다.`, 'error');
@@ -303,4 +318,68 @@ function openPasteDialog(st: AppState, cb: InputCallbacks): void {
   document.body.appendChild(dlg);
   dlg.showModal();
   area.focus();
+}
+
+function isAb1(f: File): boolean {
+  return /\.(ab1|abi|ab)$/i.test(f.name);
+}
+
+const WAVE_ICON =
+  '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 12 C3 12 3 3 5 3 S7 12 8 12 9 6 10.5 6 12 12 13 12 14 9 15 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+
+/** Card-head button: attach (or replace) an AB1 chromatogram for this sequence. */
+function ab1Button(r: SeqRecord, cb: InputCallbacks): HTMLElement {
+  const input = h('input', { type: 'file', accept: '.ab1,.abi,.ab', hidden: true }) as HTMLInputElement;
+  input.addEventListener('change', async () => {
+    const f = input.files?.[0];
+    input.value = '';
+    if (!f) return;
+    try {
+      const t = await readAb1(f);
+      if (!r.seq) r.seq = t.chrom.bases; // empty card: take the base calls as the sequence
+      if (!attachTrace(r.id, t)) toast('저장 공간이 부족해 AB1 은 새로고침하면 다시 올려야 합니다.', 'error');
+      const linked = traceFor(r.id, r.seq);
+      if (linked && linked.link.identity < 0.8)
+        toast(`"${r.name}" 서열과 AB1 염기 호출이 ${Math.round(linked.link.identity * 100)}% 만 맞습니다. 같은 샘플의 파일인지 확인하세요.`, 'error');
+      else toast(`${f.name} 을(를) "${r.name}" 에 연결했습니다.`);
+      cb.recordsChanged({ structural: true });
+    } catch (e) {
+      toast(`${f.name}: ${(e as Error).message}`, 'error');
+    }
+  });
+  const has = !!getTrace(r.id);
+  const btn = h('button', { type: 'button', class: `icon-btn ab1-btn${has ? ' on' : ''}`, title: has ? 'AB1 크로마토그램 바꾸기' : 'AB1 크로마토그램 파일 붙이기 (선택)', 'aria-label': 'AB1 파일 붙이기', onclick: () => input.click() });
+  btn.innerHTML = WAVE_ICON;
+  return h('span', { class: 'ab1-wrap' }, btn, input);
+}
+
+/** Card-foot chip describing the attached chromatogram. */
+function traceChip(st: AppState, r: SeqRecord, cb: InputCallbacks): HTMLElement | null {
+  const t = traceFor(r.id, r.seq);
+  if (!t) return null;
+  const qs = qualitySummary(t.chrom, st.view.qualityThreshold);
+  const ok = t.link.identity >= 0.8;
+  const chip = h(
+    'div',
+    { class: `trace-chip${ok ? '' : ' warn'}`, title: `${t.fileName}\n염기 호출 ${t.chrom.bases.length}개 · 서열과 ${Math.round(t.link.identity * 100)}% 일치${t.link.rc ? ' (역상보)' : ''}` },
+    h('span', { class: 'tc-icon', html: WAVE_ICON }),
+    h('span', { class: 'tc-name' }, t.fileName),
+    h('span', { class: 'tc-meta' }, qs.mean === null ? '품질값 없음' : `평균 QV ${qs.mean.toFixed(0)} · QV<${st.view.qualityThreshold} ${qs.low}개`),
+    ok ? null : h('span', { class: 'tc-warn' }, `서열과 ${Math.round(t.link.identity * 100)}% 일치`),
+    h(
+      'button',
+      {
+        type: 'button',
+        class: 'icon-btn danger',
+        title: 'AB1 연결 해제',
+        'aria-label': 'AB1 연결 해제',
+        onclick: () => {
+          detachTrace(r.id);
+          cb.recordsChanged({ structural: true });
+        },
+      },
+      '✕',
+    ),
+  );
+  return chip;
 }

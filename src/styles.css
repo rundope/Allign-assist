@@ -12,6 +12,11 @@
   --st-sub: #e5484d;
   --st-sub-text: #c4262c;
   --st-ins: #8e4ec6;
+  /* chromatogram channels (ABI convention: A green, C blue, G black, T red) */
+  --tr-a: #1a9850;
+  --tr-c: #2166ac;
+  --tr-g: #202020;
+  --tr-t: #d7301f;
   --text: #1f2328;
   --muted: #667085;
   --accent: #2f6fdb;
@@ -40,6 +45,14 @@
     --st-sub: #ef5a5f;
     --st-sub-text: #ff8b8e;
     --st-ins: #9d62de;
+  --tr-a: #3fbf6f;
+  --tr-c: #5ea3f0;
+  --tr-g: #e2e2e2;
+  --tr-t: #ff6b5b;
+    --tr-a: #3fbf6f;
+    --tr-c: #5ea3f0;
+    --tr-g: #e2e2e2;
+    --tr-t: #ff6b5b;
     --text: #e6e8eb;
     --muted: #9aa4b2;
     --accent: #5b93f0;
@@ -814,7 +827,7 @@ button:focus-visible {
   padding: 7px 10px;
   font-size: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-  max-width: 340px;
+  max-width: 360px;
 }
 .tt-head {
   font-weight: 650;
@@ -1353,4 +1366,86 @@ td.heat {
   .stat-value {
     font-size: 21px;
   }
+}
+
+/* ---------------- AB1 chromatograms ---------------- */
+.ab1-wrap {
+  display: inline-flex;
+}
+.ab1-btn {
+  display: inline-grid;
+  place-items: center;
+}
+.ab1-btn.on {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.trace-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 4px 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-size: 11.5px;
+}
+.trace-chip.warn {
+  border-color: var(--danger);
+}
+.tc-icon {
+  display: inline-grid;
+  color: var(--accent);
+}
+.tc-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+.tc-meta {
+  color: var(--muted);
+}
+.tc-warn {
+  color: var(--danger);
+  font-weight: 600;
+}
+.trace-chip .icon-btn {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+}
+.tt-trace {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--divider);
+}
+.tt-trace-head {
+  margin-bottom: 4px;
+}
+.chromo {
+  display: block;
+}
+.qv {
+  font-weight: 700;
+  padding: 0 5px;
+  border-radius: 4px;
+}
+.qv-hi {
+  color: var(--st-same);
+}
+.qv-mid {
+  color: var(--st-similar);
+}
+.qv-lo {
+  color: #ffffff;
+  background: var(--st-sub);
+}
+.lg-qv {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-bottom: 2.5px dashed;
 }

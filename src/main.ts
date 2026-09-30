@@ -3,6 +3,7 @@ import { resolveSeqType } from './core/align';
 import type { AlignSettings } from './core/types';
 import { SCHEME_LABEL, SCHEME_LEGEND, mix } from './render/colors';
 import { buildModel, type RenderModel } from './render/model';
+import { LOW_QV_COLOR } from './render/svg';
 import { drawOverview, overviewColumnAt, type OverviewLayout } from './render/overview';
 import { AlignmentViewer } from './render/viewer';
 import { h, toast } from './ui/dom';
@@ -12,6 +13,7 @@ import { buildInputPanel } from './ui/inputPanel';
 import { buildSettings } from './ui/settingsPanel';
 import { CATEGORIES, CATEGORY_LABEL, loadState, persist, recordsSignature } from './ui/state';
 import { renderStats } from './ui/statsPanel';
+import { hasAnyTrace, restoreTraces, traceFor } from './ui/traceStore';
 import { align as runInWorker } from './worker/client';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -192,6 +194,12 @@ function renderResult() {
     return;
   }
   model = buildModel(aln, st.view, st.align);
+  // attach chromatograms by sequence id; the input text may have changed since the run,
+  // so link against the sequence that was aligned
+  model.traces = aln.rows.map((row) => {
+    const rec = st.records.find((x) => x.id === row.id);
+    return rec && aln.seqType !== 'protein' ? traceFor(row.id, rec.seq) : null;
+  });
   const warn = $('warnings');
   warn.replaceChildren(...aln.warnings.map((w) => h('div', { class: 'warning' }, w)));
   renderLegend();
@@ -262,6 +270,8 @@ function renderLegend() {
       else items.push(h('span', { class: 'muted' }, '잔기마다 고유색 (마우스를 올리면 잔기 정보 표시)'));
     }
   }
+  if (v.showLowQuality && hasAnyTrace() && model?.traces?.some(Boolean))
+    items.push(h('span', { class: 'lg-item' }, h('span', { class: 'lg-qv', style: { borderColor: LOW_QV_COLOR } }), `AB1 품질 QV < ${v.qualityThreshold}`));
   host.replaceChildren(...items);
 }
 
@@ -289,6 +299,7 @@ window.addEventListener('resize', () => {
 $('sidebar-toggle').addEventListener('click', () => document.body.classList.toggle('sidebar-hidden'));
 
 // ---------------------------------------------------------------- boot
+restoreTraces(st.records.map((r) => r.id));
 rebuildInputPanel();
 rebuildSettingsPanel();
 renderResult();

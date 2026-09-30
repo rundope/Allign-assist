@@ -30,6 +30,8 @@ export interface ViewSettings {
   rowGap: number; // 가로줄(행) 간격, px
   blockGap: number; // 줄바꿈 블록 사이 간격, px
   blockSeparator: boolean; // 블록 사이 점선
+  showLowQuality: boolean; // AB1 품질이 낮은 염기 밑줄
+  qualityThreshold: number; // Phred QV 기준
   fontFamily: string;
   fontSize: number;
   fontWeight: 'normal' | 'bold';
@@ -124,6 +126,8 @@ export const DEFAULT_VIEW: ViewSettings = {
   rowGap: 2,
   blockGap: 22,
   blockSeparator: true,
+  showLowQuality: true,
+  qualityThreshold: 20,
   fontFamily: FONT_CHOICES[0].value,
   fontSize: 14,
   fontWeight: 'normal',

@@ -1,6 +1,8 @@
 // Render model: per-cell classification and styling, independent of the output medium.
 import { scoringFor } from '../core/align';
+import type { Chromatogram } from '../core/abif';
 import type { Scoring } from '../core/matrices';
+import type { TraceLink } from '../core/trace';
 import { computeColumnStats, residuePrefix, sameResidue, similarResidue, type ColumnStats } from '../core/stats';
 import type { Alignment, AlignSettings } from '../core/types';
 import type { Category, ViewSettings } from '../ui/state';
@@ -29,6 +31,27 @@ export interface RenderModel {
   /** Visible column range [c0, c1). */
   c0: number;
   c1: number;
+  /** Chromatograms attached to rows (by row index), when the user added AB1 files. */
+  traces?: (RowTrace | null)[];
+}
+
+export interface RowTrace {
+  fileName: string;
+  chrom: Chromatogram;
+  link: TraceLink;
+}
+
+/** The chromatogram peak behind the residue at (r, c), if the row has a trace. */
+export function traceAt(m: RenderModel, r: number, c: number): { t: RowTrace; idx: number; reverse: boolean } | null {
+  const t = m.traces?.[r];
+  if (!t) return null;
+  const pos = residueAt(m, r, c);
+  if (pos === null) return null;
+  const idx = t.link.map[pos - 1];
+  if (idx === undefined || idx < 0) return null;
+  // the row shows the reverse complement when the alignment flipped it, or when the typed
+  // sequence itself is the reverse complement of the calls (not both)
+  return { t, idx, reverse: (m.aln.rows[r].strand === -1) !== t.link.rc };
 }
 
 export function buildModel(aln: Alignment, view: ViewSettings, align: AlignSettings): RenderModel {

@@ -279,6 +279,8 @@ export function buildSettings(host: HTMLElement, st: AppState, cb: SettingsCallb
       : null,
     checkbox("보존 기호 (* : .)", () => v.showSymbols, setV('showSymbols'), "'*' 모두 동일, ':' Clustal strong group, '.' weak group"),
     checkbox('Consensus 행', () => v.showConsensus, setV('showConsensus'), '과반(>50%)이면 대문자, 아니면 소문자'),
+    checkbox('AB1 품질이 낮은 염기 밑줄', () => v.showLowQuality, (val) => { v.showLowQuality = val; cb.viewChanged({ rebuildPanel: true }); }, 'AB1 크로마토그램을 붙인 서열에서 품질값(Phred QV)이 기준보다 낮은 염기 아래에 주황 점선을 긋습니다.'),
+    v.showLowQuality ? numberInput('품질 기준 (QV)', () => v.qualityThreshold, setV('qualityThreshold'), { min: 1, max: 60, hint: 'QV 20 = 오류 확률 1%, QV 30 = 0.1%' }) : null,
     checkbox('열별 % identity 막대', () => v.showConservation, setV('showConservation')),
     select(
       '표시 범위',

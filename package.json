@@ -13,6 +13,7 @@
     "gen:matrices": "node scripts/gen-matrices.mjs"
   },
   "devDependencies": {
+    "@types/node": "^22.20.4",
     "typescript": "~5.9",
     "vite": "^8.3.1",
     "vite-plugin-singlefile": "^2.3.3",
