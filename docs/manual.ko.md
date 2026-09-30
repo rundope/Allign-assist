@@ -220,7 +220,7 @@ Sanger 시퀀싱 결과 파일(`.ab1`, ABIF 형식)을 붙이면, 정렬된 각 
 
 ### 정렬 줄 위의 크로마토그램
 
-![정렬 줄 위의 크로마토그램](images/trace-inline.ko.png)
+![정렬 줄 위의 크로마토그램](images/trace-inline.png)
 
 *'DNA: AB1 read 와 레퍼런스 비교' 예제. 105번은 깨끗한 단일 peak(실제 차이), 185번은 두 peak 이 겹친 자리(이형접합 등),
 246번은 read 에 없는 염기(결실)라 곡선이 비어 있습니다.
