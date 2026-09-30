@@ -74,10 +74,15 @@ async function shotEl(page, loc, name, lang) {
 
 /** From the top of block `from` to the bottom of block `to` in the alignment view. */
 async function shotBlocks(page, name, lang, from, to) {
+  const vp = page.viewportSize();
+  await page.setViewportSize({ width: vp.width, height: 4000 });
+  await page.waitForTimeout(300);
   await page.locator('.block').nth(from).scrollIntoViewIfNeeded();
   const a = await page.locator('.block').nth(from).boundingBox();
   const b = await page.locator('.block').nth(to).boundingBox();
   await shot(page, name, lang, { clip: { x: a.x, y: a.y, width: a.width, height: b.y + b.height - a.y } });
+  await page.setViewportSize(vp);
+  await page.waitForTimeout(300);
 }
 
 for (const lang of ['ko', 'en']) {
@@ -109,7 +114,11 @@ for (const lang of ['ko', 'en']) {
   // 5. statistics
   await shotEl(page, page.locator('#stats'), 'stats', lang);
 
-  // 6. protein MSA (names and residues only, so one image for both languages), plus the colour settings
+  // 6. an AB1 read loaded as input: chromatogram strips above the alignment row (blocks 61–360)
+  await loadExample(page, 'ab1-read');
+  await shotBlocks(page, 'trace-inline', lang, 1, 5);
+
+  // 7. protein MSA (names and residues only, so one image for both languages), plus the colour settings
   await loadExample(page, 'protein-msa');
   if (lang === 'ko') await shotBlocks(page, 'msa', null, 0, 1);
   const colours = page.locator('#settings details').nth(2);

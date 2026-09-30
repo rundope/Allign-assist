@@ -31,8 +31,9 @@ results (AB1) to see the signal and quality behind every base.
 - **Offline**: in the repository run `npm install && npm run build`. This produces a single
   file, `dist/index.html`, that opens by double-clicking, without an internet connection.
 - **On first visit** an example (synthetic sequences) loads: three reads mapped onto a 600 bp
-  reference, with AB1 chromatograms on read_1 and read_3. Replace the text in the sequence
-  cards on the left to align your own sequences.
+  reference, with AB1 chromatograms on read_1 and read_3 drawn right above their rows. Replace
+  the text in the sequence cards on the left to align your own sequences. To start from an AB1
+  file, open it with **Open files** (see the example 'DNA: an AB1 read against a reference').
 
 > Your sequences never leave the browser. All computation runs on your own computer.
 
@@ -61,7 +62,10 @@ On narrow screens (phones) the sidebar moves above the results; the ☰ button h
 - **Open files** reads FASTA, GenBank (`ORIGIN` section), EMBL, plain text and **AB1** files, several at once.
 - **Paste FASTA** takes a multi-record FASTA in one go.
 - **Drag and drop** files or text onto the sequence area.
-- **Examples ▾** loads one of three examples (reads + AB1, two DNA variants, five-protein MSA). All are synthetic.
+- **Examples ▾** loads one of four examples (reads + AB1, an AB1 read against a reference, two DNA variants, five-protein MSA). All are synthetic.
+
+An AB1 file works as input on its own. **Open** or drop an `.ab1` file and its base calls become a new
+sequence card with the chromatogram attached ([chapter 7](#7-ab1-chromatograms)).
 
 Pasting a multi-record FASTA into a single card splits it into one card per record.
 
@@ -153,6 +157,7 @@ Gaps before a sequence starts or after it ends (terminal gaps) are shown blank b
 - **Consensus row** and **per-column % identity bars**: switch on under ④ Display.
 - **Dots (.)**: residues identical to the reference become dots, so only differences remain as letters.
 - **Orange dotted underline**: AB1 quality below the threshold ([section 7](#7-ab1-chromatograms)).
+- **Trace above a row (AB1)**: rows with an AB1 file get their chromatogram drawn right above the alignment row ([chapter 7](#7-ab1-chromatograms)).
 
 ### Tooltip
 
@@ -188,8 +193,8 @@ comparison category, and the column consensus. Rows with an AB1 file also show t
   print. Background and text colours can also be set per category.
 - **Text, secondary text and paper colours** set the alignment view and exported images.
 
-**④ Display**: names, numbers, ruler, conservation symbols, consensus, AB1 quality underline and
-its QV threshold, % identity bars, range shown (everything / only where two or more sequences
+**④ Display**: names, numbers, ruler, conservation symbols, consensus, AB1 chromatograms above the
+sequence and their height, AB1 quality underline and its QV threshold, % identity bars, range shown (everything / only where two or more sequences
 overlap), and a reset button.
 
 ## 7. AB1 chromatograms
@@ -211,6 +216,27 @@ The card then shows `file name · mean QV · number below QV 20`. ✕ detaches i
 The card's sequence need not be identical to the AB1 base calls. Trimmed, hand-edited or
 reverse-complemented copies are aligned to the calls, so each residue finds its peak. If less
 than 80% matches, the card warns in red: the file may belong to another sample.
+
+### The chromatogram above the row
+
+![Chromatogram above the row](images/trace-inline.en.png)
+
+*The 'DNA: an AB1 read against a reference' example. Position 105 is one clean peak (a real difference), 185 has two
+overlapping peaks (e.g. a heterozygous site), 246 is a base missing from the read, so the trace is empty there, and 316 sits on a poor peak near the read end,
+most likely a sequencing error.*
+
+Rows with an AB1 file get the four-channel trace drawn right above the alignment row. Each base's peak is stretched
+or squeezed into the column of its letter below, so the peaks behind any difference are in view as you read the alignment.
+
+- Positions that differ from the comparison target (mismatch, similar, indel) get a band of that category's colour behind the trace.
+- Gap columns of the read and hand-typed bases leave the trace empty.
+- Reverse-complemented rows are drawn mirrored with complementary channel colours, so they read in the same direction as the letters.
+- The height is scaled to the tallest peak in each block, but that scale never drops below 20% of the read's highest peak, so the weak read ends are not blown up.
+- Blocks where the read has no bases get no trace strip.
+- Turn it off or change its height under **④ Display**. SVG and PNG exports include it.
+
+How to read a difference: one tall, clean peak is most likely a real difference. Two overlapping peaks of similar
+height suggest a heterozygous site or a mixed sample. Low peaks over high background (usually at the read ends) may be a sequencing error.
 
 ### The chromatogram in the tooltip
 

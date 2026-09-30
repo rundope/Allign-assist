@@ -36,7 +36,7 @@ npm run build && npm i --no-save playwright && npx playwright install chromium &
 
 | 영역 | 내용 |
 |---|---|
-| 입력 | 서열 카드 편집, FASTA / GenBank / EMBL / 일반 텍스트, 파일 끌어놓기, 여러 레코드 FASTA 한 번에 붙여넣기, 합성 예제 3종 |
+| 입력 | 서열 카드 편집, FASTA / GenBank / EMBL / 일반 텍스트, 파일 끌어놓기, 여러 레코드 FASTA 한 번에 붙여넣기, 합성 예제 4종 |
 | 정렬 알고리즘 | Gotoh affine gap DP로 4개 모드를 지원합니다: Global (Needleman-Wunsch), Semi-global (말단 gap 무료), Fit (레퍼런스 안 위치 찾기), Local (Smith-Waterman) |
 | 다중 정렬 | Reference-anchored는 각 서열을 레퍼런스에 정렬한 뒤 레퍼런스 좌표로 합칩니다. Progressive MSA는 UPGMA guide tree를 따라 profile-profile로 정렬합니다 |
 | 점수 | BLOSUM45/62/80, PAM250, NUC.4.4 (EDNAFULL, IUPAC), match/mismatch 직접 지정. gap open/extend를 조절할 수 있습니다 |
@@ -44,7 +44,7 @@ npm run build && npm i --no-save playwright && npx playwright install chromium &
 | 색상 | 강조 방식 4종(일치/유사/불일치/indel/gap, 열 보존도 음영, 잔기 물성 scheme 6종, 없음). 범주별 배경·글자색 지정, 프리셋 4종, 비교 대상(임의 서열 또는 consensus) |
 | 표시 | 눈금자(레퍼런스 좌표 또는 열 번호), 시작/끝 번호, consensus 행, 보존 기호 `* : .`, 열별 % identity 막대, 점(.) 표기, 말단 gap 숨김, 겹침 구간만 보기 |
 | 탐색 | 전체 overview 맵(클릭하면 해당 위치로 이동), 마우스를 올리면 잔기·위치·물성·열 통계를 보여주는 툴팁 |
-| AB1 크로마토그램 | DNA 서열 카드의 파형 아이콘으로 ABIF(.ab1) 파일을 붙이거나, '파일 열기'로 .ab1 을 바로 올리면 염기 호출이 새 서열이 됩니다. 정렬 보기에서 잔기에 마우스를 올리면 그 염기 주변의 4채널 신호 곡선, 호출 염기, Phred 품질(QV)이 나옵니다. 서열이 잘렸거나 고쳐졌거나 역상보여도 염기 호출과 정렬해서 위치를 맞춥니다. 품질이 기준(기본 QV 20)보다 낮은 염기 아래에는 주황 점선을 긋습니다 |
+| AB1 크로마토그램 | DNA 서열 카드의 파형 아이콘으로 ABIF(.ab1) 파일을 붙이거나, '파일 열기'로 .ab1 을 바로 올리면 염기 호출이 새 서열이 됩니다. 정렬 보기에서 잔기에 마우스를 올리면 그 염기 주변의 4채널 신호 곡선, 호출 염기, Phred 품질(QV)이 나옵니다. 서열이 잘렸거나 고쳐졌거나 역상보여도 염기 호출과 정렬해서 위치를 맞춥니다. 품질이 기준(기본 QV 20)보다 낮은 염기 아래에는 주황 점선을 긋습니다. 크로마토그램은 정렬 줄 바로 위에도 그려져, 각 peak 이 아래 글자와 같은 열에 옵니다 |
 | 통계 | Identity / Similarity / Gaps / Coverage / 매칭 위치 / Score, 물성 기준 일치도, 서열별 요약표, identity matrix |
 | 내보내기 | SVG (벡터), PNG (2×), 정렬 FASTA, Clustal `.aln`, 통계 CSV |
 

@@ -1,7 +1,7 @@
 // Geometry and SVG generation for wrapped alignment blocks.
 // Each glyph is positioned explicitly (x list + text-anchor="middle"), so any font —
 // monospace or proportional — lines up exactly on the column grid.
-import { cellStyle, residueNumber, traceAt, type RenderModel } from './model';
+import { categorize, cellStyle, residueNumber, traceAt, type RenderModel } from './model';
 
 /** Underline colour for low-quality chromatogram calls (orange: distinct from the category colours). */
 export const LOW_QV_COLOR = '#f08c00';
@@ -19,13 +19,28 @@ export interface Geometry {
   x0: number; // x of the first cell
   perLine: number;
   rulerH: number;
-  consensusY: number; // relative to rows end
+  traceH: number;
   extrasH: number;
-  blockH: number;
-  blockStep: number;
+  /** Per-block layout. Blocks differ in height: a chromatogram strip is only drawn in
+   *  blocks where its read has base calls. */
+  blocks: BlockGeo[];
+  /** Height of all blocks stacked, block gaps included. */
+  totalH: number;
   width: number;
   nBlocks: number;
   labels: string[];
+}
+
+export interface BlockGeo {
+  /** Offset from the top of the first block. */
+  top: number;
+  h: number;
+  /** Top of each sequence row, relative to the block top. */
+  rowY: number[];
+  /** Rows with a chromatogram strip right above them in this block. */
+  traced: boolean[];
+  /** Top of the consensus / symbol / % identity rows. */
+  consensusY: number;
 }
 
 let measureCtx: CanvasRenderingContext2D | null = null;
@@ -77,13 +92,42 @@ export function computeGeometry(m: RenderModel, availableWidth: number): Geometr
   perLine = Math.max(1, Math.min(perLine, Math.max(1, visible)));
   const rulerH = v.showRuler ? Math.round(smallSize + 8) : 0;
   const N = m.rows.length;
-  const rowsH = N * cellH + (N - 1) * Math.max(0, v.rowGap);
+  const rowGap = Math.max(0, v.rowGap);
   let extrasH = 0;
   if (v.showConsensus) extrasH += rowStep;
-  if (v.showSymbols) extrasH += Math.round(cellH * 0.8) + Math.max(0, v.rowGap);
-  if (v.showConservation) extrasH += Math.round(cellH * 1.2) + Math.max(0, v.rowGap);
-  const blockH = rulerH + rowsH + (extrasH ? Math.max(0, v.rowGap) + extrasH : 0);
-  const blockStep = blockH + Math.max(0, v.blockGap);
+  if (v.showSymbols) extrasH += Math.round(cellH * 0.8) + rowGap;
+  if (v.showConservation) extrasH += Math.round(cellH * 1.2) + rowGap;
+  // columns between the first and last residue backed by a base call, per row with a trace
+  const traceH = Math.max(16, Math.round(v.traceHeight));
+  const callSpan = m.rows.map((_, r): [number, number] | null => {
+    if (!v.showTraces || !m.nucleotide || !m.traces?.[r]) return null;
+    let lo = -1;
+    let hi = -1;
+    for (let c = m.c0; c < m.c1; c++)
+      if (traceAt(m, r, c)) {
+        if (lo < 0) lo = c;
+        hi = c;
+      }
+    return lo < 0 ? null : [lo, hi];
+  });
+  const nBlocks = Math.max(1, Math.ceil(visible / perLine));
+  const blocks: BlockGeo[] = [];
+  let top = 0;
+  for (let b = 0; b < nBlocks; b++) {
+    const s = m.c0 + b * perLine;
+    const e = Math.min(m.c1, s + perLine);
+    const traced = callSpan.map((span) => span !== null && span[0] < e && span[1] >= s);
+    const rowY: number[] = [];
+    let y = rulerH;
+    for (let r = 0; r < N; r++) {
+      if (traced[r]) y += traceH;
+      rowY.push(y);
+      y += cellH + (r < N - 1 ? rowGap : 0);
+    }
+    const h = y + (extrasH ? rowGap + extrasH : 0);
+    blocks.push({ top, h, rowY, traced, consensusY: y + rowGap });
+    top += h + Math.max(0, v.blockGap);
+  }
   const lineW = cellsWidth(perLine, cellW, g, groupGap);
   return {
     font,
@@ -98,12 +142,12 @@ export function computeGeometry(m: RenderModel, availableWidth: number): Geometr
     x0,
     perLine,
     rulerH,
-    consensusY: rulerH + rowsH + Math.max(0, v.rowGap),
+    traceH,
     extrasH,
-    blockH,
-    blockStep,
+    blocks,
+    totalH: top - Math.max(0, v.blockGap),
     width: Math.ceil(x0 + lineW + numW + 4),
-    nBlocks: Math.max(1, Math.ceil(visible / perLine)),
+    nBlocks,
     labels,
   };
 }
@@ -150,6 +194,7 @@ const f1 = (n: number) => (Math.round(n * 10) / 10).toString();
 export function blockContent(geo: Geometry, m: RenderModel, b: number): string {
   const v = m.view;
   const [s, e] = blockRange(geo, m, b);
+  const bg = geo.blocks[b];
   const count = e - s;
   const out: string[] = [];
   const merge = v.columnGap <= 0;
@@ -186,7 +231,8 @@ export function blockContent(geo: Geometry, m: RenderModel, b: number): string {
 
   // ---- sequence rows ----
   for (let r = 0; r < m.rows.length; r++) {
-    const y = geo.rulerH + r * geo.rowStep;
+    const y = bg.rowY[r];
+    if (bg.traced[r]) out.push(traceTrack(geo, m, r, y, s, count, xs));
     const cy = y + geo.cellH / 2;
     if (v.showNames)
       out.push(
@@ -263,7 +309,7 @@ export function blockContent(geo: Geometry, m: RenderModel, b: number): string {
   }
 
   // ---- consensus / symbols / conservation ----
-  let y = geo.consensusY;
+  let y = bg.consensusY;
   if (v.showConsensus) {
     const cy = y + geo.cellH / 2;
     if (v.showNames)
@@ -310,22 +356,118 @@ export function blockContent(geo: Geometry, m: RenderModel, b: number): string {
   return out.join('');
 }
 
+/** Chromatogram channel colours (G is drawn in the view's text colour). */
+export const TRACE_COLOR = { A: '#1a9850', C: '#2166ac', T: '#d7301f' } as const;
+const COMP: Record<string, 'A' | 'C' | 'G' | 'T'> = { A: 'T', C: 'G', G: 'C', T: 'A' };
+const peakMax = new WeakMap<object, number>();
+
+/**
+ * Chromatogram strip right above row r. Every residue gets the stretch of trace that
+ * belongs to its base call (halfway to the neighbouring peaks), squeezed into its column,
+ * so the peaks line up with the letters below. Gaps and hand-typed bases stay empty.
+ */
+function traceTrack(geo: Geometry, m: RenderModel, r: number, rowTop: number, s: number, count: number, xs: number[]): string {
+  const v = m.view;
+  const tr = m.traces![r]!;
+  const c = tr.chrom;
+  const n = c.bases.length;
+  const top = rowTop - geo.traceH;
+  const base = rowTop - 2;
+  const H = geo.traceH - 5;
+  const out: string[] = [];
+  const wins: ({ k: number; lo: number; hi: number; reverse: boolean } | null)[] = [];
+  for (let k = 0; k < count; k++) {
+    const hit = traceAt(m, r, s + k);
+    if (!hit) {
+      wins.push(null);
+      continue;
+    }
+    const i = hit.idx;
+    const p = c.peaks[i];
+    const prev = i > 0 ? c.peaks[i - 1] : null;
+    const next = i + 1 < n ? c.peaks[i + 1] : null;
+    const halfL = prev !== null ? Math.abs(p - prev) / 2 : next !== null ? Math.abs(next - p) / 2 : 6;
+    const halfR = next !== null ? Math.abs(next - p) / 2 : halfL;
+    wins.push({ k, lo: p - halfL, hi: p + halfR, reverse: hit.reverse });
+  }
+  if (!wins.some(Boolean)) return '';
+  // differences from the comparison target get a light band, so the peaks behind them stand out
+  if (v.highlight === 'identity') {
+    for (const w of wins) {
+      if (!w) continue;
+      const cat = categorize(m, r, s + w.k);
+      if (cat !== 'mismatch' && cat !== 'similar' && cat !== 'indel') continue;
+      const fill = v.colors[cat].bg || (cat === 'mismatch' ? '#e5484d' : cat === 'similar' ? '#f5b642' : '#8e4ec6');
+      out.push(`<rect x="${f1(cellX(geo, m, w.k))}" y="${f1(top + 1)}" width="${geo.tileW}" height="${f1(geo.traceH - 1)}" fill="${fill}" fill-opacity="0.45"/>`);
+    }
+  }
+  // height: the tallest peak in this block, but never below a fraction of the whole read's,
+  // so a noisy stretch at the read end is not blown up to full height
+  let whole = peakMax.get(c);
+  if (whole === undefined) {
+    whole = 1;
+    for (const b of ['A', 'C', 'G', 'T'] as const) for (const x of c.channels[b]) if (x > whole) whole = x;
+    peakMax.set(c, whole);
+  }
+  let ymax = whole * 0.2;
+  for (const w of wins) {
+    if (!w) continue;
+    for (const b of ['A', 'C', 'G', 'T'] as const) {
+      const ch = c.channels[b];
+      for (let t = Math.max(0, Math.ceil(w.lo)); t <= Math.floor(w.hi) && t < ch.length; t++) if (ch[t] > ymax) ymax = ch[t];
+    }
+  }
+  const Y = (val: number) => f1(base - (Math.max(0, val) / ymax) * H);
+  const half = geo.cellW / 2;
+  const g = v.groupSize > 0 && v.groupGap > 0 ? v.groupSize : 0;
+  for (const b of ['A', 'C', 'G', 'T'] as const) {
+    const ch = c.channels[b];
+    let d = '';
+    let prevK = -2;
+    for (const w of wins) {
+      if (!w) continue;
+      const span = Math.max(1e-6, w.hi - w.lo);
+      const cx = xs[w.k];
+      // restart the line after a gap, a hand-typed base or a group gap
+      let first = w.k !== prevK + 1 || (g > 0 && w.k % g === 0);
+      for (let t = Math.max(0, Math.ceil(w.lo)); t <= Math.floor(w.hi) && t < ch.length; t++) {
+        const f = (t - w.lo) / span;
+        const x = w.reverse ? cx + half - f * geo.cellW : cx - half + f * geo.cellW;
+        d += `${first ? 'M' : 'L'}${f1(x)} ${Y(ch[t])}`;
+        first = false;
+      }
+      prevK = w.k;
+    }
+    if (!d) continue;
+    const shown = wins.find(Boolean)!.reverse ? COMP[b] : b;
+    const color = shown === 'G' ? v.textColor : TRACE_COLOR[shown];
+    out.push(`<path d="${d}" fill="none" stroke="${color}" stroke-width="1.1" stroke-linejoin="round"/>`);
+  }
+  const drawn = wins.filter(Boolean) as { k: number }[];
+  const x0 = cellX(geo, m, drawn[0].k);
+  const x1 = cellX(geo, m, drawn[drawn.length - 1].k) + geo.tileW;
+  out.push(`<path d="M${f1(x0)} ${f1(base + 0.5)}H${f1(x1)}" stroke="${v.mutedColor}" stroke-opacity="0.35"/>`);
+  if (v.showNames)
+    out.push(`<text x="12" y="${f1(top + geo.traceH / 2)}" font-family="${esc(v.fontFamily)}" font-size="${geo.smallSize}" font-style="italic" dominant-baseline="central" fill="${v.mutedColor}">AB1</text>`);
+  return out.join('');
+}
+
 export function blockSVG(geo: Geometry, m: RenderModel, b: number): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${geo.width}" height="${geo.blockH}" viewBox="0 0 ${geo.width} ${geo.blockH}">${blockContent(geo, m, b)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${geo.width}" height="${geo.blocks[b].h}" viewBox="0 0 ${geo.width} ${geo.blocks[b].h}">${blockContent(geo, m, b)}</svg>`;
 }
 
 /** One standalone SVG document with every block stacked (for export). */
 export function fullSVG(geo: Geometry, m: RenderModel, title?: string): string {
   const pad = 16;
   const titleH = title ? geo.fontSize + 16 : 0;
-  const height = pad * 2 + titleH + geo.nBlocks * geo.blockStep - m.view.blockGap;
+  const height = pad * 2 + titleH + geo.totalH;
   const parts: string[] = [];
   parts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${geo.width + pad * 2}" height="${height}" viewBox="0 0 ${geo.width + pad * 2} ${height}">`);
   parts.push(`<rect width="100%" height="100%" fill="${m.view.paperColor}"/>`);
   if (title)
     parts.push(`<text x="${pad}" y="${pad + geo.fontSize}" font-family="${esc(m.view.fontFamily)}" font-size="${geo.fontSize}" font-weight="bold" fill="${m.view.textColor}">${esc(title)}</text>`);
   for (let b = 0; b < geo.nBlocks; b++) {
-    const top = pad + titleH + b * geo.blockStep;
+    const top = pad + titleH + geo.blocks[b].top;
     if (b > 0 && m.view.blockSeparator) {
       const y = f1(top - Math.max(0, m.view.blockGap) / 2);
       parts.push(`<line x1="${pad}" x2="${pad + geo.width}" y1="${y}" y2="${y}" stroke="${m.view.mutedColor}" stroke-opacity="0.6" stroke-dasharray="4 3"/>`);

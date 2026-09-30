@@ -59,7 +59,7 @@ export class AlignmentViewer {
       const div = document.createElement('div');
       div.className = 'block';
       div.dataset.b = String(b);
-      div.style.height = `${geo.blockH}px`;
+      div.style.height = `${geo.blocks[b].h}px`;
       div.style.marginBottom = b === geo.nBlocks - 1 ? '0' : `${m.view.blockGap}px`;
       frag.appendChild(div);
       this.blocks.push(div);
@@ -92,9 +92,22 @@ export class AlignmentViewer {
     const top = this.scroller.scrollTop;
     const bottom = top + this.scroller.clientHeight;
     const pad = 12; // inner padding
-    const bFirst = Math.max(0, Math.floor((top - pad) / geo.blockStep));
-    const bLast = Math.min(geo.nBlocks - 1, Math.floor((bottom - pad) / geo.blockStep));
+    const bFirst = this.blockAt(top - pad);
+    const bLast = this.blockAt(bottom - pad);
     return [blockRange(geo, m, bFirst)[0], blockRange(geo, m, Math.max(bFirst, bLast))[1]];
+  }
+
+  /** Index of the block at vertical offset y (from the top of the first block). */
+  private blockAt(y: number): number {
+    const bl = this.geo!.blocks;
+    let lo = 0;
+    let hi = bl.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (bl[mid].top <= y) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo;
   }
 
   private emitViewport(): void {
@@ -107,7 +120,7 @@ export class AlignmentViewer {
     const geo = this.geo;
     if (!m || !geo) return;
     const b = Math.max(0, Math.min(geo.nBlocks - 1, Math.floor((c - m.c0) / geo.perLine)));
-    this.scroller.scrollTo({ top: b * geo.blockStep, behavior: 'smooth' });
+    this.scroller.scrollTo({ top: geo.blocks[b].top, behavior: 'smooth' });
     this.flashColumn(b, c);
   }
 
@@ -140,9 +153,16 @@ export class AlignmentViewer {
     const y = e.clientY - rect.top;
     const [s, end] = blockRange(geo, m, b);
     const k = cellAt(geo, m, x, end - s);
-    const ry = y - geo.rulerH;
-    const r = ry >= 0 ? Math.floor(ry / geo.rowStep) : -1;
-    const inRow = r >= 0 && r < m.rows.length && ry - r * geo.rowStep <= geo.cellH;
+    // a row, or the chromatogram strip drawn above it
+    const bg = geo.blocks[b];
+    let r = -1;
+    for (let i = 0; i < m.rows.length; i++) {
+      if (y >= bg.rowY[i] - (bg.traced[i] ? geo.traceH : 0) && y <= bg.rowY[i] + geo.cellH) {
+        r = i;
+        break;
+      }
+    }
+    const inRow = r >= 0;
     if (k < 0) return this.hideTip();
     const c = s + k;
     // column highlight

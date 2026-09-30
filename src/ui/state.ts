@@ -32,6 +32,8 @@ export interface ViewSettings {
   blockSeparator: boolean; // 블록 사이 점선
   showLowQuality: boolean; // AB1 품질이 낮은 염기 밑줄
   qualityThreshold: number; // Phred QV 기준
+  showTraces: boolean; // AB1 크로마토그램을 정렬 줄 바로 위에 그림
+  traceHeight: number; // 그 크로마토그램 높이, px
   fontFamily: string;
   fontSize: number;
   fontWeight: 'normal' | 'bold';
@@ -128,6 +130,8 @@ export const DEFAULT_VIEW: ViewSettings = {
   blockSeparator: true,
   showLowQuality: true,
   qualityThreshold: 20,
+  showTraces: true,
+  traceHeight: 46,
   fontFamily: FONT_CHOICES[0].value,
   fontSize: 14,
   fontWeight: 'normal',

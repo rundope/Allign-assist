@@ -1490,3 +1490,7 @@ td.heat {
     display: none;
   }
 }
+.lg-trace b {
+  font-family: ui-monospace, monospace;
+  margin-left: 3px;
+}
