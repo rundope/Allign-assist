@@ -1,4 +1,4 @@
-# Align Assist
+# Allign-assist
 
 DNA·RNA·단백질 서열 정렬을 **읽기 쉽게** 보여주는 뷰어입니다. Serial Cloner·UniProt Align을 참고했고,
 가독성과 사용자 조절 범위를 넓히는 데 초점을 맞췄습니다.

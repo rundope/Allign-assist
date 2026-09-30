@@ -1,8 +1,8 @@
-# Align Assist 사용 설명서
+# Allign-assist 사용 설명서
 
 [English](manual.en.md) · 웹 앱: <https://rundope.github.io/Allign-assist/>
 
-Align Assist 는 DNA·RNA·단백질 서열 정렬을 **읽기 쉽게** 보여주는 웹 앱입니다. 한 서열이
+Allign-assist 는 DNA·RNA·단백질 서열 정렬을 **읽기 쉽게** 보여주는 웹 앱입니다. 한 서열이
 레퍼런스의 어디에, 얼마나 맞는지와 여러 서열이 어디가 같고 어디가 다른지를 색으로 보여주고,
 일치도를 잔기 물성 기준으로도 계산합니다. Sanger 시퀀싱 결과(AB1)를 붙이면 각 염기의 신호와
 품질값도 같이 볼 수 있습니다.

@@ -1,6 +1,6 @@
 # Third-party material
 
-Align Assist's own code is under the MIT License (see `LICENSE`). The repository also
+Allign-assist's own code is under the MIT License (see `LICENSE`). The repository also
 contains the following material from other sources, under their own terms.
 
 | Path | What | Source | Terms |

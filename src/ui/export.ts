@@ -75,7 +75,7 @@ export function clustal(m: RenderModel): string {
   const w = Math.max(...names.map((n) => n.length)) + 6;
   const counts = rows.map(() => 0);
   const L = rows[0].aligned.length;
-  const out: string[] = ['CLUSTAL W format — Align Assist', '', ''];
+  const out: string[] = ['CLUSTAL W format — Allign-assist', '', ''];
   for (let s = 0; s < L; s += 60) {
     rows.forEach((r, i) => {
       const chunk = r.aligned.slice(s, s + 60);
