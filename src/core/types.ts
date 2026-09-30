@@ -45,8 +45,15 @@ export interface Alignment {
   referenceIndex: number;
   /** DP score of each row against the reference (reference strategy only). */
   scores: (number | null)[];
-  warnings: string[];
+  /** Translatable messages (key = Korean source text, positional args). */
+  warnings: Msg[];
   elapsedMs: number;
 }
 
 export type ProgressFn = (stage: string, fraction: number) => void;
+
+/** A translatable message: the Korean source text is the key; {0}, {1}… take args. */
+export interface Msg {
+  key: string;
+  args?: (string | number)[];
+}

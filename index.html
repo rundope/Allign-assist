@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="DNA·단백질 서열 정렬을 읽기 쉽게 보여주는 뷰어 — 레이아웃·글꼴·색상을 자유롭게 조절" />
+    <meta name="description" content="Readable DNA and protein sequence alignment viewer — adjustable layout, fonts and colours. DNA·단백질 서열 정렬 뷰어." />
     <title>Align Assist</title>
     <link
       rel="icon"
@@ -12,7 +12,7 @@
   </head>
   <body>
     <header class="topbar">
-      <button id="sidebar-toggle" class="icon-btn" title="사이드바 열기/닫기" aria-label="사이드바 열기/닫기">☰</button>
+      <button id="sidebar-toggle" class="icon-btn" data-i18n-title="사이드바 열기/닫기" title="사이드바 열기/닫기" aria-label="사이드바 열기/닫기">☰</button>
       <div class="brand">
         <span class="logo" aria-hidden="true"></span>
         <b>Align Assist</b>
@@ -20,33 +20,35 @@
       </div>
       <span id="type-badge" class="badge"></span>
       <div class="spacer"></div>
-      <button id="theme-toggle" class="icon-btn" title="라이트/다크 전환" aria-label="라이트/다크 전환">◐</button>
+      <a id="help-link" class="top-link" href="https://github.com/rundope/Allign-assist/blob/main/docs/manual.ko.md" target="_blank" rel="noopener" data-i18n="사용 설명서">사용 설명서</a>
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" id="lang-ko" lang="ko">한국어</button>
+        <button type="button" id="lang-en" lang="en">English</button>
+      </div>
+      <button id="theme-toggle" class="icon-btn" data-i18n-title="라이트/다크 전환" title="라이트/다크 전환" aria-label="라이트/다크 전환">◐</button>
     </header>
 
     <div class="layout">
       <aside id="sidebar">
         <details class="panel" open>
-          <summary>서열 입력 <span class="count" id="seq-count">0</span></summary>
+          <summary><span data-i18n="서열 입력">서열 입력</span> <span class="count" id="seq-count">0</span></summary>
           <div class="panel-body" id="input-panel"></div>
         </details>
         <div id="settings"></div>
         <div class="run-bar">
-          <button id="run-btn" class="btn primary">정렬 실행 <kbd>Ctrl</kbd>+<kbd>Enter</kbd></button>
+          <button id="run-btn" class="btn primary"><span data-i18n="정렬 실행">정렬 실행</span> <kbd>Ctrl</kbd>+<kbd>Enter</kbd></button>
           <div id="run-hint" class="hint"></div>
         </div>
       </aside>
 
       <main id="main">
         <section id="empty-state">
-          <h1>서열 정렬을 읽기 쉽게</h1>
-          <p>
-            왼쪽에 서열을 2개 이상 넣으면 자동으로 정렬합니다. 한 서열이 레퍼런스의 <b>어디에, 얼마나</b> 맞는지, 여러 서열이
-            <b>어디가 같고 어디가 다른지</b> 색으로 보여줍니다.
-          </p>
+          <h1 data-i18n="서열 정렬을 읽기 쉽게">서열 정렬을 읽기 쉽게</h1>
+          <p data-i18n-html="왼쪽에 서열을 2개 이상 넣으면 자동으로 정렬합니다. 한 서열이 레퍼런스의 <b>어디에, 얼마나</b> 맞는지, 여러 서열이 <b>어디가 같고 어디가 다른지</b> 색으로 보여줍니다.">왼쪽에 서열을 2개 이상 넣으면 자동으로 정렬합니다. 한 서열이 레퍼런스의 <b>어디에, 얼마나</b> 맞는지, 여러 서열이 <b>어디가 같고 어디가 다른지</b> 색으로 보여줍니다.</p>
           <ol>
-            <li><b>서열 입력</b> — 붙여넣기, FASTA·GenBank 파일 끌어놓기, 또는 <i>예제</i> 선택.</li>
-            <li><b>정렬 방법</b> — Fit(레퍼런스 안 위치 찾기) · Semi-global · Global · Local, 여러 개면 MSA.</li>
-            <li><b>레이아웃 · 색상</b> — 한 줄 잔기 수, 가로·세로 간격, 글꼴·크기, 일치/불일치 색을 조절.</li>
+            <li data-i18n-html="<b>서열 입력</b> — 붙여넣기, FASTA·GenBank·AB1 파일 끌어놓기, 또는 <i>예제</i> 선택."><b>서열 입력</b> — 붙여넣기, FASTA·GenBank·AB1 파일 끌어놓기, 또는 <i>예제</i> 선택.</li>
+            <li data-i18n-html="<b>정렬 방법</b> — Fit(레퍼런스 안 위치 찾기) · Semi-global · Global · Local, 여러 개면 MSA."><b>정렬 방법</b> — Fit(레퍼런스 안 위치 찾기) · Semi-global · Global · Local, 여러 개면 MSA.</li>
+            <li data-i18n-html="<b>레이아웃 · 색상</b> — 한 줄 잔기 수, 가로·세로 간격, 글꼴·크기, 일치/불일치 색을 조절."><b>레이아웃 · 색상</b> — 한 줄 잔기 수, 가로·세로 간격, 글꼴·크기, 일치/불일치 색을 조절.</li>
           </ol>
         </section>
 
@@ -55,36 +57,36 @@
             <div id="legend" class="legend"></div>
             <div class="spacer"></div>
             <div class="export">
-              <span class="muted">내보내기</span>
-              <button class="btn small" id="export-svg" title="벡터 이미지 — 논문·PPT용">SVG</button>
-              <button class="btn small" id="export-png" title="고해상도(2×) 이미지">PNG</button>
-              <button class="btn small" id="export-fasta" title="gap 포함 정렬 FASTA">FASTA</button>
+              <span class="muted" data-i18n="내보내기">내보내기</span>
+              <button class="btn small" id="export-svg" data-i18n-title="벡터 이미지 — 논문·PPT용" title="벡터 이미지 — 논문·PPT용">SVG</button>
+              <button class="btn small" id="export-png" data-i18n-title="고해상도(2×) 이미지" title="고해상도(2×) 이미지">PNG</button>
+              <button class="btn small" id="export-fasta" data-i18n-title="gap 포함 정렬 FASTA" title="gap 포함 정렬 FASTA">FASTA</button>
               <button class="btn small" id="export-aln" title="Clustal .aln">Clustal</button>
-              <button class="btn small" id="export-csv" title="통계 표 (Excel)">CSV</button>
+              <button class="btn small" id="export-csv" data-i18n-title="통계 표 (Excel)" title="통계 표 (Excel)">CSV</button>
             </div>
           </div>
           <div id="warnings"></div>
-          <div class="zone-label">전체 맵 <span class="zone-hint">클릭하면 해당 위치로 이동</span></div>
-          <div id="overview-wrap" title="클릭하면 해당 위치로 이동">
+          <div class="zone-label"><span data-i18n="전체 맵">전체 맵</span> <span class="zone-hint" data-i18n="클릭하면 해당 위치로 이동">클릭하면 해당 위치로 이동</span></div>
+          <div id="overview-wrap" data-i18n-title="클릭하면 해당 위치로 이동" title="클릭하면 해당 위치로 이동">
             <canvas id="overview"></canvas>
           </div>
-          <div class="zone-label">정렬 보기 <span class="zone-hint">잔기에 마우스를 올리면 상세 정보</span></div>
+          <div class="zone-label"><span data-i18n="정렬 보기">정렬 보기</span> <span class="zone-hint" data-i18n="잔기에 마우스를 올리면 상세 정보">잔기에 마우스를 올리면 상세 정보</span></div>
           <div id="viewer-scroll">
             <div id="viewer-inner"></div>
           </div>
-          <div class="zone-label">일치도 통계</div>
+          <div class="zone-label"><span data-i18n="일치도 통계">일치도 통계</span></div>
           <section id="stats"></section>
         </section>
       </main>
     </div>
 
     <noscript>
-      <p style="padding: 16px">Align Assist 는 JavaScript 가 필요합니다. 브라우저에서 JavaScript 를 켜고 새로고침하세요.</p>
+      <p style="padding: 16px">Align Assist 는 JavaScript 가 필요합니다. 브라우저에서 JavaScript 를 켜고 새로고침하세요. / Align Assist needs JavaScript. Turn it on in your browser and reload.</p>
     </noscript>
     <div id="tooltip" role="tooltip" hidden></div>
     <div id="progress" hidden>
       <div class="progress-card">
-        <div id="progress-label">정렬 중…</div>
+        <div id="progress-label" data-i18n="정렬 중…">정렬 중…</div>
         <progress id="progress-bar" max="1" value="0"></progress>
       </div>
     </div>

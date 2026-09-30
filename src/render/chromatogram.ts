@@ -1,6 +1,7 @@
 // Small chromatogram (4-channel trace) around one base call, as inline SVG for the tooltip.
 // When the aligned row shows the reverse complement of the read, the picture is mirrored
 // and every channel is drawn as its complementary base, so it reads like the row.
+import { t } from '../i18n';
 import type { Chromatogram } from '../core/abif';
 
 type Base = 'A' | 'C' | 'G' | 'T';
@@ -9,9 +10,9 @@ const COMP: Record<string, string> = { A: 'T', C: 'G', G: 'C', T: 'A' };
 const COLOR: Record<Base, string> = { A: 'var(--tr-a)', C: 'var(--tr-c)', G: 'var(--tr-g)', T: 'var(--tr-t)' };
 
 export function qualityClass(q: number): { label: string; cls: 'hi' | 'mid' | 'lo' } {
-  if (q >= 30) return { label: '높음', cls: 'hi' };
-  if (q >= 20) return { label: '보통', cls: 'mid' };
-  return { label: '낮음', cls: 'lo' };
+  if (q >= 30) return { label: t('높음'), cls: 'hi' };
+  if (q >= 20) return { label: t('보통'), cls: 'mid' };
+  return { label: t('낮음'), cls: 'lo' };
 }
 
 export function chromatogramSVG(c: Chromatogram, idx: number, reverse: boolean, flank = 6): string {

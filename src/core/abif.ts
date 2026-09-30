@@ -6,6 +6,8 @@
 // Tags used: DATA9–12 analysed traces (channel order from FWO_1), PBAS2 base calls,
 // PLOC2 peak positions, PCON2 Phred quality values (the *1 tags are the edited copies).
 
+import { CodedError } from './errors';
+
 export interface Chromatogram {
   /** Called bases (PBAS). */
   bases: string;
@@ -29,7 +31,7 @@ interface Entry {
   offset: number; // absolute offset of the data (inline data resolved to the entry field)
 }
 
-export class AbifError extends Error {}
+export class AbifError extends CodedError {}
 
 export function parseAbif(buffer: ArrayBuffer): Chromatogram {
   const view = new DataView(buffer);

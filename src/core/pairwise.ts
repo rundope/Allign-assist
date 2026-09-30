@@ -9,6 +9,7 @@
 //   fit         A (the reference) may overhang for free at both ends, B (the query) must be
 //               aligned end-to-end. Answers "where in my reference does this query sit?".
 //   local       Smith–Waterman: best-scoring sub-region of both sequences.
+import { CodedError } from './errors';
 import { encode, type Scoring } from './matrices';
 
 export type AlignMode = 'global' | 'semiglobal' | 'fit' | 'local';
@@ -42,15 +43,18 @@ export const MAX_CELLS = 150_000_000;
 
 const NEG = -Infinity;
 
-export class AlignmentTooLargeError extends Error {}
+export class AlignmentTooLargeError extends CodedError {}
 
 export function dynamicProgram(o: DPOptions): DPResult {
   const { n, m, scoreRow, gapOpen: open, gapExtend: ext, mode } = o;
   const cells = (n + 1) * (m + 1);
   if (cells > MAX_CELLS) {
-    throw new AlignmentTooLargeError(
-      `정렬 행렬이 너무 큽니다 (${n} × ${m} = ${(cells / 1e6).toFixed(0)}M cells, 최대 ${MAX_CELLS / 1e6}M). 서열을 잘라서 정렬하세요.`,
-    );
+    throw new AlignmentTooLargeError('정렬 행렬이 너무 큽니다 ({0} × {1} = {2}M cells, 최대 {3}M). 서열을 잘라서 정렬하세요.', [
+      n,
+      m,
+      (cells / 1e6).toFixed(0),
+      MAX_CELLS / 1e6,
+    ]);
   }
   const local = mode === 'local';
   const freeLeadA = mode === 'semiglobal' || mode === 'fit';

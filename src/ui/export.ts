@@ -1,4 +1,5 @@
 // Export: SVG / PNG image, aligned FASTA, Clustal (.aln), statistics CSV.
+import { t } from '../i18n';
 import { pct } from '../core/stats';
 import type { RenderModel } from '../render/model';
 import { computeGeometry, fullSVG } from '../render/svg';
@@ -30,7 +31,7 @@ export async function exportPNG(m: RenderModel, width: number, scale = 2): Promi
   let s = scale;
   while (s > 0.5 && (w * s > 32000 || hgt * s > 32000 || w * hgt * s * s > 250e6)) s /= 2;
   if (w * s > 32000 || hgt * s > 32000) {
-    toast('정렬이 너무 커서 PNG 로 만들 수 없습니다. SVG 로 내보내세요.', 'error');
+    toast(t('정렬이 너무 커서 PNG 로 만들 수 없습니다. SVG 로 내보내세요.'), 'error');
     return;
   }
   const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
@@ -38,7 +39,7 @@ export async function exportPNG(m: RenderModel, width: number, scale = 2): Promi
     const img = new Image();
     await new Promise<void>((res, rej) => {
       img.onload = () => res();
-      img.onerror = () => rej(new Error('SVG 렌더링 실패'));
+      img.onerror = () => rej(new Error(t('SVG 렌더링 실패')));
       img.src = url;
     });
     const canvas = document.createElement('canvas');
@@ -48,11 +49,11 @@ export async function exportPNG(m: RenderModel, width: number, scale = 2): Promi
     ctx.scale(s, s);
     ctx.drawImage(img, 0, 0);
     const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png'));
-    if (!blob) throw new Error('PNG 인코딩 실패');
+    if (!blob) throw new Error(t('PNG 인코딩 실패'));
     download(`${baseName(m)}.png`, blob, 'image/png');
-    if (s < scale) toast(`크기 제한 때문에 ${s}× 해상도로 저장했습니다.`);
+    if (s < scale) toast(t('크기 제한 때문에 {0}× 해상도로 저장했습니다.', s));
   } catch (e) {
-    toast(`PNG 저장 실패: ${(e as Error).message}`, 'error');
+    toast(t('PNG 저장 실패: {0}', (e as Error).message), 'error');
   } finally {
     URL.revokeObjectURL(url);
   }
