@@ -38,6 +38,10 @@ results (AB1) to see the signal and quality behind every base.
 
 ## 2. The screen
 
+![Whole screen](images/overview.en.png)
+
+*The screen on first visit. Sequence cards and settings on the left; legend, overview and alignment view on the right.*
+
 | Where | What |
 |---|---|
 | Top bar | User manual link, language switch (한국어 / English), light / dark switch |
@@ -62,6 +66,10 @@ On narrow screens (phones) the sidebar moves above the results; the ☰ button h
 Pasting a multi-record FASTA into a single card splits it into one card per record.
 
 ### What a card can do
+
+<img src="images/input.en.png" width="320" alt="Sequence cards">
+
+*Sequence cards. read_1 and read_3 have AB1 files attached, and each card shows the strand that was chosen automatically.*
 
 | Control | Purpose |
 |---|---|
@@ -91,6 +99,10 @@ Pasting a multi-record FASTA into a single card splits it into one card per reco
 | **Reference-anchored** (**Pairwise** with two sequences) | Aligns every sequence to one reference and merges them in reference coordinates. "Where does my sequence sit on the reference?", mapping several sequencing reads onto a plasmid. |
 | **Multiple alignment (progressive MSA)** | Comparing many similar sequences at once. Merged in guide-tree (UPGMA) order. |
 
+![Protein MSA](images/msa.png)
+
+*A progressive MSA (the 'Protein: MSA of five sequences' example). The bottom line holds the conservation marks.*
+
 ### Mode
 
 | Mode | Behaviour | Good for |
@@ -113,6 +125,10 @@ MSA supports global and semi-global only; Fit and Local run as semi-global there
 Small inputs re-align automatically when sequences or settings change. For large ones press **Align** (Ctrl+Enter).
 
 ## 5. Reading the alignment view
+
+![Alignment view](images/view.en.png)
+
+*Legend, overview (the black box is the part on screen) and alignment view. The orange dotted underline on read_1 marks low-quality bases.*
 
 ### Colours (highlighting = match / similar / mismatch)
 
@@ -159,6 +175,10 @@ comparison category, and the column consensus. Rows with an AB1 file also show t
 
 **③ Colours · highlighting**
 
+<img src="images/settings-colour.en.png" width="320" alt="Colour settings">
+
+*The ③ Colours · highlighting panel. Each category has its own background and text colour.*
+
 - **Highlighting**: match / similar / mismatch, column conservation shading (Jalview Percentage
   Identity style), residue property colours (ClustalX, Zappo, Taylor, Hydrophobicity, Lehninger,
   Nucleotide), or none.
@@ -194,6 +214,10 @@ than 80% matches, the card warns in red: the file may belong to another sample.
 
 ### The chromatogram in the tooltip
 
+![AB1 tooltip](images/tooltip-ab1.en.png)
+
+*Hovering base 41 of read_1: four-channel traces, base calls, quality bars and the QV.*
+
 Hovering a residue of a sequence with an AB1 file shows:
 
 - the **four-channel trace** around that base (six bases either side; A green, C blue, G black, T red),
@@ -214,6 +238,10 @@ sequencing error. Change the threshold under **④ Display**.
 > is full you are told, and the file has to be added again after a reload.
 
 ## 8. Identity statistics
+
+![Identity statistics](images/stats.en.png)
+
+*Per-sequence comparison, details of the selected sequence (read_1), and the identity matrix.*
 
 With **three or more sequences** a **per-sequence comparison** table comes first: a mini map
 of where each sequence lies on the reference, its identity, and substitution / insertion /
