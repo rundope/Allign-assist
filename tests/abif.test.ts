@@ -58,3 +58,25 @@ describe('linking a sequence to its chromatogram', () => {
     expect(l.map[399]).toBe(100);
   });
 });
+
+import { synthChromatogram } from '../src/ui/demoTrace';
+
+describe('synthetic demo chromatogram', () => {
+  const calls = 'ACGTACGGTACCATGACGTTAGCATGACGATCGATCGTAGCTAGCTAGCATCGACTAGCATCGACTAGCTAGCATCGATCGACTACGATCGACTAGCA';
+  const c = synthChromatogram(calls, { seed: 1, doubtful: [50] });
+  it('has one peak and one quality value per call, and links 1:1 to its calls', () => {
+    expect(c.peaks).toHaveLength(calls.length);
+    expect(c.quality).toHaveLength(calls.length);
+    expect(linkTrace(calls, c).identity).toBe(1);
+  });
+  it('is poor at the ends, good in the middle and poor at doubtful positions', () => {
+    expect(c.quality[0]).toBeLessThan(20);
+    expect(c.quality[40]).toBeGreaterThanOrEqual(30);
+    expect(c.quality[50]).toBeLessThan(20);
+  });
+  it('puts the tallest signal of a clean call in the called channel', () => {
+    const p = c.peaks[40];
+    const b = calls[40] as 'A' | 'C' | 'G' | 'T';
+    for (const o of ['A', 'C', 'G', 'T'] as const) if (o !== b) expect(c.channels[b][p]).toBeGreaterThan(c.channels[o][p]);
+  });
+});
