@@ -85,15 +85,23 @@ export class GlancePanel {
     const width = this.canvasWrap.clientWidth;
     if (!m || width <= 0) return;
     this.renderLoupe(); // loupe height is part of the budget below
-    // budget: the window height below the sticky header, minus everything in the
-    // glance zone above the canvas (the zone is scrolled to the top when shown)
+    // Budget: the window height below the sticky header, minus everything in the glance
+    // zone above the canvas (the zone is scrolled to the top when shown). The info line
+    // depends on the layout and can change height, so fit twice if it moved.
     const zone = this.host.parentElement ?? this.host;
-    const above = this.canvasWrap.getBoundingClientRect().top - zone.getBoundingClientRect().top;
-    const maxH = Math.max(200, window.innerHeight - 56 - above - 14);
-    const l = computeCompactLayout(m, width, maxH);
+    let l: CompactLayout | null = null;
+    for (let pass = 0; pass < 2; pass++) {
+      const above = this.canvasWrap.getBoundingClientRect().top - zone.getBoundingClientRect().top;
+      const maxH = Math.max(200, window.innerHeight - 56 - above - 14);
+      const next = computeCompactLayout(m, width, maxH);
+      const same = l && l.perLine === next.perLine && l.rowH === next.rowH && l.fontPx === next.fontPx;
+      l = next;
+      this.renderInfo(l);
+      if (same) break;
+    }
     this.layout = l;
     const cs = getComputedStyle(this.host);
-    drawCompact(this.canvas, m, l, {
+    drawCompact(this.canvas, m, l!, {
       residue: cs.getPropertyValue('--compact-residue').trim() || '#d7dce3',
       text: m.view.textColor,
       muted: m.view.mutedColor,
@@ -101,6 +109,11 @@ export class GlancePanel {
       paper: m.view.paperColor,
     });
     this.canvasWrap.style.background = m.view.paperColor;
+    this.placeWindow();
+  }
+
+  private renderInfo(l: CompactLayout): void {
+    const m = this.model!;
     const L = m.c1 - m.c0;
     this.info.replaceChildren(
       h('span', null, h('b', null, `${L.toLocaleString()}열 전체`), ` · 한 줄 ${l.perLine}잔기 × ${l.nBlocks}줄`),
@@ -109,7 +122,6 @@ export class GlancePanel {
       h('span', { class: 'muted hint' }, l.overflow ? '서열이 너무 길어 일부는 스크롤해야 합니다 · ' : '', '마우스를 올리면 확대창에 표시 · 클릭하면 고정 · 더블클릭하면 상세 보기로 이동'),
       h('button', { type: 'button', class: 'btn small', title: '상세 보기로 돌아가기 (단축키 G)', onclick: () => this.cb.jumpTo(this.focus) }, '← 상세 보기'),
     );
-    this.placeWindow();
   }
 
   private hit(e: MouseEvent): { r: number; c: number } | null {
