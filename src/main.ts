@@ -1,6 +1,5 @@
 import { errorText, getLang, onLangChange, setLang, t, tm } from './i18n';
 import './styles.css';
-import favicon from './assets/favicon.png';
 import { resolveSeqType } from './core/align';
 import type { AlignSettings } from './core/types';
 import { SCHEME_LABEL, SCHEME_LEGEND, mix } from './render/colors';
@@ -19,9 +18,6 @@ import { attachTrace, detachTrace, hasAnyTrace, restoreTraces, traceFor } from '
 import { align as runInWorker } from './worker/client';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-
-// Spoonbills logo as the tab icon (imported, so the single-file build inlines it)
-$<HTMLLinkElement>('favicon').href = favicon;
 
 const st = loadState();
 let model: RenderModel | null = null;
