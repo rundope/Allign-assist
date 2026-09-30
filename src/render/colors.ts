@@ -34,12 +34,6 @@ function relLum(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-export function contrastRatio(a: string, b: string): number {
-  const la = relLum(a);
-  const lb = relLum(b);
-  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
-}
-
 /** Black or white, whichever has the higher WCAG contrast against bg. */
 export function readableOn(bg: string, dark = '#111111', light = '#ffffff'): string {
   const L = relLum(bg);

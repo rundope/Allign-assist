@@ -52,10 +52,6 @@
 
         <section id="result" hidden>
           <div class="toolbar">
-            <div class="view-toggle" role="group" aria-label="보기 방식">
-              <button type="button" id="mode-detail" title="잔기 단위로 자세히 보기">상세 보기</button>
-              <button type="button" id="mode-glance" title="전체를 한 화면에 요약 (단축키 G)">한눈에 보기</button>
-            </div>
             <div id="legend" class="legend"></div>
             <div class="spacer"></div>
             <div class="export">
@@ -68,19 +64,13 @@
             </div>
           </div>
           <div id="warnings"></div>
-          <div id="glance-zone" hidden>
-            <div class="zone-label">한눈에 보기 <span class="zone-hint">정렬 전체를 한 화면에 · 스크롤 없이</span></div>
-            <section id="glance"></section>
+          <div class="zone-label">전체 맵 <span class="zone-hint">클릭하면 해당 위치로 이동</span></div>
+          <div id="overview-wrap" title="클릭하면 해당 위치로 이동">
+            <canvas id="overview"></canvas>
           </div>
-          <div id="detail-zone">
-            <div class="zone-label">전체 맵 <span class="zone-hint">클릭하면 해당 위치로 이동</span></div>
-            <div id="overview-wrap" title="클릭하면 해당 위치로 이동">
-              <canvas id="overview"></canvas>
-            </div>
-            <div class="zone-label">정렬 보기 <span class="zone-hint">잔기에 마우스를 올리면 상세 정보</span></div>
-            <div id="viewer-scroll">
-              <div id="viewer-inner"></div>
-            </div>
+          <div class="zone-label">정렬 보기 <span class="zone-hint">잔기에 마우스를 올리면 상세 정보</span></div>
+          <div id="viewer-scroll">
+            <div id="viewer-inner"></div>
           </div>
           <div class="zone-label">일치도 통계</div>
           <section id="stats"></section>
