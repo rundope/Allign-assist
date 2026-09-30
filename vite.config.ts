@@ -6,6 +6,8 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 export default defineConfig({
   base: './',
   plugins: [viteSingleFile()],
+  // everything is inlined, so there is nothing to preload: leave Vite's polyfill out
+  build: { modulePreload: { polyfill: false } },
   test: {
     include: ['tests/**/*.test.ts'],
   },

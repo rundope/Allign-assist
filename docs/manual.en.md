@@ -226,7 +226,7 @@ than 80% matches, the card warns in red: the file may belong to another sample.
 
 ### The chromatogram above the row
 
-![Chromatogram above the row](images/trace-inline.en.png)
+![Chromatogram above the row](images/trace-inline.png)
 
 *The 'DNA: an AB1 read against a reference' example. Position 105 is one clean peak (a real difference), 185 has two
 overlapping peaks (e.g. a heterozygous site), 246 is a base missing from the read, so the trace is empty there, and 316 sits on a poor peak near the read end,

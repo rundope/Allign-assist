@@ -116,7 +116,8 @@ for (const lang of ['ko', 'en']) {
 
   // 6. an AB1 read loaded as input: chromatogram strips above the alignment row (blocks 61–360)
   await loadExample(page, 'ab1-read');
-  await shotBlocks(page, 'trace-inline', lang, 1, 5);
+  // (names and residues only, so one image for both languages)
+  if (lang === 'ko') await shotBlocks(page, 'trace-inline', null, 1, 5);
 
   // 7. protein MSA (names and residues only, so one image for both languages), plus the colour settings
   await loadExample(page, 'protein-msa');
