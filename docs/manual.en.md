@@ -1,3 +1,10 @@
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/spoonbills-dark.png">
+    <img src="images/spoonbills.png" alt="Spoonbills" width="88">
+  </picture>
+</p>
+
 # Allign-assist user manual
 
 [한국어](manual.ko.md) · Web app: <https://rundope.github.io/Allign-assist/>

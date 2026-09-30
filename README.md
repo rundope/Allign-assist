@@ -1,3 +1,10 @@
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/spoonbills-dark.png">
+    <img src="docs/images/spoonbills.png" alt="Spoonbills" width="88">
+  </picture>
+</p>
+
 # Allign-assist
 
 DNA·RNA·단백질 서열 정렬을 **읽기 쉽게** 보여주는 뷰어입니다. Serial Cloner·UniProt Align을 참고했고,
@@ -86,4 +93,4 @@ UI 문자열은 `t('한국어 원문 {0}', 값)` 형태로 씁니다. `tests/i18
 
 ## 라이선스
 
-[MIT License](LICENSE). 함께 배포하는 제3자 자료(NCBI 치환 행렬, Biopython 테스트용 AB1 파일)의 출처와 라이선스는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 있습니다.
+[MIT License](LICENSE). 단, Spoonbills 로고(`src/assets/`, `docs/images/spoonbills*.png`)는 MIT 라이선스 대상이 아니며 Spoonbills 에 권리가 있습니다. 함께 배포하는 제3자 자료(NCBI 치환 행렬, Biopython 테스트용 AB1 파일)의 출처와 라이선스는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 있습니다.

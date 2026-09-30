@@ -1,6 +1,7 @@
 # Third-party material
 
-Allign-assist's own code is under the MIT License (see `LICENSE`). The repository also
+Allign-assist's own code is under the MIT License (see `LICENSE`). The Spoonbills logo (`src/assets/spoonbills.png`, `src/assets/favicon.png`,
+`docs/images/spoonbills*.png`) is not covered by that license; all rights to it stay with Spoonbills. The repository also
 contains the following material from other sources, under their own terms.
 
 | Path | What | Source | Terms |
