@@ -7,6 +7,8 @@ DNA·RNA·단백질 서열 정렬을 **읽기 쉽게** 보여주는 뷰어입니
 - 비슷한 서열 2~N개가 **어디가 같고 어디가 다른지** 색으로 표시합니다 (pairwise, reference-anchored, progressive MSA).
 - 일치도를 **물성 기준**으로도 보여줍니다. 단백질은 Clustal 그룹·Lehninger 5계열·전하·소수성을, DNA는 purine/pyrimidine·strong/weak·amino/keto·Ts/Tv를 기준으로 합니다.
 
+**바로 사용하기:** https://rundope.github.io/Allign-assist/
+
 ## 실행
 
 ```bash
@@ -15,6 +17,8 @@ npm run dev      # 개발 서버
 npm run build    # dist/index.html — JS·CSS·Worker가 모두 들어 있는 단일 파일
 npm test         # 단위 테스트 + Biopython 교차검증
 ```
+
+`main`에 푸시하면 `.github/workflows/pages.yml`이 테스트와 빌드를 돌린 뒤 GitHub Pages에 배포합니다.
 
 `npm run build:artifact`는 claude.ai Artifact용 변형(`dist-artifact/align-assist.html`)을 만듭니다. 이 환경은 파일 다운로드가 막혀 있어서, 내보내기 버튼이 복사·저장용 대화상자를 엽니다.
 
