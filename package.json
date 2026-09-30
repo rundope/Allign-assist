@@ -10,8 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "gen:matrices": "node scripts/gen-matrices.mjs",
-    "build:artifact": "tsc --noEmit && node scripts/build-artifact.mjs"
+    "gen:matrices": "node scripts/gen-matrices.mjs"
   },
   "devDependencies": {
     "typescript": "~5.9",
