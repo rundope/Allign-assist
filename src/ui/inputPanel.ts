@@ -52,8 +52,18 @@ export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallba
           'button',
           {
             class: 'btn small ghost danger',
-            onclick: () => {
-              if (!confirm('모든 서열을 지울까요?')) return;
+            onclick: (e: MouseEvent) => {
+              // two-step confirmation inside the page (window.confirm is unavailable in some embeds)
+              const btn = e.currentTarget as HTMLButtonElement;
+              if (btn.dataset.armed !== '1') {
+                btn.dataset.armed = '1';
+                btn.textContent = '한 번 더 누르면 삭제';
+                setTimeout(() => {
+                  btn.dataset.armed = '';
+                  btn.textContent = '전체 삭제';
+                }, 3000);
+                return;
+              }
               st.records.length = 0;
               cb.recordsChanged({ structural: true });
             },

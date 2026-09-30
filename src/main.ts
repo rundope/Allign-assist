@@ -137,22 +137,24 @@ function rebuildInputPanel() {
       $('seq-count').textContent = String(st.records.length);
       scheduleAuto();
     },
-    loadExample: (key) => {
-      const ex = EXAMPLES.find((x) => x.key === key);
-      if (!ex) return;
-      st.records = ex.records();
-      Object.assign(st.align, ex.align);
-      st.view.compareTo = 'row';
-      st.view.compareRow = ex.align.referenceIndex ?? 0;
-      persist(st);
-      rebuildInputPanel();
-      rebuildSettingsPanel();
-      $('seq-count').textContent = String(st.records.length);
-      toast(`예제: ${ex.description}`);
-      void runAlignment();
-    },
+    loadExample: (key) => loadExample(key),
   });
   $('seq-count').textContent = String(st.records.length);
+}
+
+function loadExample(key: string, quiet = false) {
+  const ex = EXAMPLES.find((x) => x.key === key);
+  if (!ex) return;
+  st.records = ex.records();
+  Object.assign(st.align, ex.align);
+  st.view.compareTo = 'row';
+  st.view.compareRow = ex.align.referenceIndex ?? 0;
+  persist(st);
+  rebuildInputPanel();
+  rebuildSettingsPanel();
+  $('seq-count').textContent = String(st.records.length);
+  if (!quiet) toast(`예제: ${ex.description}`);
+  void runAlignment();
 }
 
 function rebuildSettingsPanel() {
@@ -290,3 +292,8 @@ rebuildSettingsPanel();
 renderResult();
 updateRunButton();
 if (nonEmpty().length >= 2) scheduleAuto();
+else if (st.firstRun) {
+  // first visit: open on a worked example (synthetic data) instead of an empty screen
+  loadExample('mapping', true);
+  toast('예제(합성 서열)를 불러왔습니다. 왼쪽에서 내 서열로 바꿔 넣으세요.');
+}

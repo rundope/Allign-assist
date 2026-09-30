@@ -97,7 +97,7 @@ kbd {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 20;
 }
 .brand {
@@ -151,9 +151,9 @@ kbd {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 47px);
+  height: calc(100vh - 47px - env(safe-area-inset-top, 0px));
   position: sticky;
-  top: 47px;
+  top: calc(47px + env(safe-area-inset-top, 0px));
 }
 body.sidebar-hidden #sidebar {
   display: none;
@@ -543,6 +543,25 @@ button:focus-visible {
   margin: 0 0 10px;
 }
 .paste-dialog textarea {
+  font: 12px/1.4 ui-monospace, monospace;
+}
+.export-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.export-preview {
+  max-height: 60vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+}
+.export-preview img {
+  display: block;
+  max-width: 100%;
+}
+.export-dialog textarea {
   font: 12px/1.4 ui-monospace, monospace;
 }
 .dialog-actions {

@@ -16,6 +16,8 @@ npm run build    # dist/index.html — JS·CSS·Worker가 모두 들어 있는 �
 npm test         # 단위 테스트 + Biopython 교차검증
 ```
 
+`npm run build:artifact`는 claude.ai Artifact용 변형(`dist-artifact/align-assist.html`)을 만듭니다. 이 환경은 파일 다운로드가 막혀 있어서, 내보내기 버튼이 복사·저장용 대화상자를 엽니다.
+
 `dist/index.html`은 서버 없이 더블클릭만으로 열리고 오프라인에서도 동작합니다. 서열은 브라우저 밖으로 전송되지 않습니다.
 
 ## 기능 구성

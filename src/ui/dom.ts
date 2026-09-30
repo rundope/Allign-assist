@@ -121,7 +121,17 @@ export function section(title: string, open: boolean, ...children: Child[]): HTM
   return h('details', { class: 'panel', open }, h('summary', null, title), h('div', { class: 'panel-body' }, ...children));
 }
 
+/**
+ * Sandboxed hosts (the claude.ai Artifact build, VITE_TARGET=artifact) block page-initiated
+ * downloads, so there the export is shown in a dialog to copy or save by hand.
+ */
+const SANDBOXED = import.meta.env.VITE_TARGET === 'artifact';
+
 export function download(filename: string, data: BlobPart, type: string): void {
+  if (SANDBOXED) {
+    exportDialog(filename, data, type);
+    return;
+  }
   const url = URL.createObjectURL(new Blob([data], { type }));
   const a = h('a', { href: url, download: filename });
   document.body.appendChild(a);
@@ -137,4 +147,47 @@ export function toast(msg: string, kind: 'info' | 'error' = 'info'): void {
   host.appendChild(el);
   setTimeout(() => el.classList.add('out'), 3800);
   setTimeout(() => el.remove(), 4300);
+}
+
+function exportDialog(filename: string, data: BlobPart, type: string): void {
+  const blob = new Blob([data], { type });
+  const url = URL.createObjectURL(blob);
+  const body = h('div', { class: 'export-body' });
+  const actions = h('div', { class: 'dialog-actions' });
+  const dlg = h('dialog', { class: 'paste-dialog export-dialog' }, h('h3', null, filename), body, actions) as HTMLDialogElement;
+  const copyBtn = (label: string, getText: () => Promise<string>) => {
+    const b = h('button', { class: 'btn' }, label) as HTMLButtonElement;
+    b.addEventListener('click', async () => {
+      const text = await getText();
+      try {
+        await navigator.clipboard.writeText(text);
+        toast('클립보드에 복사했습니다.');
+      } catch {
+        const ta = body.querySelector('textarea');
+        ta?.focus();
+        ta?.select();
+        toast('자동 복사가 막혀 있어 텍스트를 선택해 두었습니다. Ctrl+C 로 복사하세요.');
+      }
+    });
+    return b;
+  };
+  if (type.startsWith('image/')) {
+    body.append(
+      h('div', { class: 'hint' }, '이 환경에서는 파일을 바로 내려받을 수 없습니다. 이미지를 우클릭(모바일은 길게 누르기)해서 저장하세요.'),
+      h('div', { class: 'export-preview' }, h('img', { src: url, alt: filename })),
+    );
+    if (type === 'image/svg+xml') actions.append(copyBtn('SVG 코드 복사', () => blob.text()));
+  } else {
+    const ta = h('textarea', { rows: 14, readonly: true, spellcheck: 'false' }) as HTMLTextAreaElement;
+    void blob.text().then((t) => (ta.value = t));
+    body.append(h('div', { class: 'hint' }, `이 환경에서는 파일을 바로 내려받을 수 없습니다. 내용을 복사해 ${filename} 로 저장하세요.`), ta);
+    actions.append(copyBtn('복사', () => blob.text()));
+  }
+  actions.append(h('button', { class: 'btn primary', onclick: () => dlg.close() }, '닫기'));
+  dlg.addEventListener('close', () => {
+    dlg.remove();
+    URL.revokeObjectURL(url);
+  });
+  document.body.appendChild(dlg);
+  dlg.showModal();
 }
