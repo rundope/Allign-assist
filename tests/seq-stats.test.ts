@@ -80,3 +80,14 @@ describe('column statistics', () => {
     expect(m[0][2].pairs).toBe(2);
   });
 });
+
+describe('insertions and deletions', () => {
+  it('are counted separately relative to the first sequence', () => {
+    //   A: ACGT--ACGTACGT
+    //   B: ACGTTTACG---GT   -> 1 insertion run (2 nt) and 1 deletion run (3 nt)
+    const s = computePairStats('ACGT--ACGTACGT', 'ACGTTTACG---GT', { start: 1, strand: 1 }, { start: 1, strand: 1 }, 'dna', dnaScoring());
+    expect([s.insEvents, s.insPositions, s.delEvents, s.delPositions]).toEqual([1, 2, 1, 3]);
+    expect(s.gapOpens).toBe(2);
+    expect(s.gapPositions).toBe(5);
+  });
+});
