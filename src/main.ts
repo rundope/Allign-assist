@@ -1,3 +1,4 @@
+import { errorText, getLang, onLangChange, setLang, t, tm } from './i18n';
 import './styles.css';
 import { resolveSeqType } from './core/align';
 import type { AlignSettings } from './core/types';
@@ -81,7 +82,7 @@ function updateRunButton() {
   const n = nonEmpty().length;
   btn.disabled = n < 2 || running;
   btn.classList.toggle('stale', n >= 2 && isStale());
-  $('run-hint').textContent = n < 2 ? '서열이 2개 이상 필요합니다.' : isStale() ? '입력이나 정렬 설정이 바뀌었습니다.' : '최신 결과입니다.';
+  $('run-hint').textContent = n < 2 ? t('서열이 2개 이상 필요합니다.') : isStale() ? t('입력이나 정렬 설정이 바뀌었습니다.') : t('최신 결과입니다.');
 }
 
 async function runAlignment() {
@@ -95,7 +96,7 @@ async function runAlignment() {
   const progTimer = window.setTimeout(() => (prog.hidden = false), 250);
   try {
     const result = await runInWorker(recs, settings, (stage, fraction) => {
-      $('progress-label').textContent = stage;
+      $('progress-label').textContent = t(stage);
       $<HTMLProgressElement>('progress-bar').value = fraction;
     });
     const prevStrategy = st.alignment?.strategy;
@@ -114,7 +115,7 @@ async function runAlignment() {
     renderResult();
   } catch (e) {
     const msg = (e as Error).message;
-    if (msg !== 'cancelled') toast(`정렬 실패: ${msg}`, 'error');
+    if (msg !== 'cancelled') toast(t('정렬 실패: {0}', errorText(e)), 'error');
   } finally {
     clearTimeout(progTimer);
     prog.hidden = true;
@@ -152,7 +153,7 @@ function loadExample(key: string, quiet = false) {
   for (const r of st.records) detachTrace(r.id);
   st.records = ex.records();
   // demo chromatograms (synthetic) so the AB1 feature is visible without a file at hand
-  for (const t of ex.traces?.(st.records) ?? []) attachTrace(st.records[t.index].id, { fileName: t.fileName, chrom: t.chrom });
+  for (const tr of ex.traces?.(st.records) ?? []) attachTrace(st.records[tr.index].id, { fileName: t(tr.fileName), chrom: tr.chrom });
   Object.assign(st.align, ex.align);
   st.view.compareTo = 'row';
   st.view.compareRow = ex.align.referenceIndex ?? 0;
@@ -160,7 +161,7 @@ function loadExample(key: string, quiet = false) {
   rebuildInputPanel();
   rebuildSettingsPanel();
   $('seq-count').textContent = String(st.records.length);
-  if (!quiet) toast(`예제: ${ex.description}`);
+  if (!quiet) toast(t('예제: {0}', t(ex.description)));
   void runAlignment();
 }
 
@@ -204,7 +205,7 @@ function renderResult() {
     return rec && aln.seqType !== 'protein' ? traceFor(row.id, rec.seq) : null;
   });
   const warn = $('warnings');
-  warn.replaceChildren(...aln.warnings.map((w) => h('div', { class: 'warning' }, w)));
+  warn.replaceChildren(...aln.warnings.map((w) => h('div', { class: 'warning' }, tm(w))));
   renderLegend();
   viewer.setModel(model);
   drawOv();
@@ -248,13 +249,13 @@ function renderLegend() {
     h('span', { class: 'lg-item' }, h('span', { class: 'lg-sw', style: { background: bg || 'transparent', color: fg || v.textColor, borderColor: bg ? 'transparent' : 'var(--border)' } }, ch), label);
   if (v.highlight === 'identity') {
     const target = v.compareTo === 'consensus' ? 'Consensus' : (st.alignment?.rows[v.compareRow]?.name ?? '');
-    items.push(h('span', { class: 'lg-title' }, `기준: ${target}`));
+    items.push(h('span', { class: 'lg-title' }, t('기준: {0}', target)));
     for (const c of CATEGORIES) {
       if (c === 'similar' && !v.showSimilar) continue;
-      items.push(sw(v.colors[c].bg, v.colors[c].fg, c === 'gap' ? '-' : 'A', CATEGORY_LABEL[c]));
+      items.push(sw(v.colors[c].bg, v.colors[c].fg, c === 'gap' ? '-' : 'A', t(CATEGORY_LABEL[c])));
     }
   } else if (v.highlight === 'conservation') {
-    items.push(h('span', { class: 'lg-title' }, '열 보존도'));
+    items.push(h('span', { class: 'lg-title' }, t('열 보존도')));
     for (const [lvl, label] of [
       [1, '> 80%'],
       [0.62, '> 60%'],
@@ -267,14 +268,14 @@ function renderLegend() {
       items.push(h('span', { class: 'lg-title' }, 'Nucleotide'));
       for (const b of ['A', 'C', 'G', 'T'] as const) items.push(sw(v.nucleotideColors[b], '', b, ''));
     } else {
-      items.push(h('span', { class: 'lg-title' }, SCHEME_LABEL[v.residueScheme]));
+      items.push(h('span', { class: 'lg-title' }, t(SCHEME_LABEL[v.residueScheme])));
       const leg = (SCHEME_LEGEND as Record<string, [string, string][]>)[v.residueScheme];
-      if (leg) for (const [c, l] of leg) items.push(sw(c, '', '', l));
-      else items.push(h('span', { class: 'muted' }, '잔기마다 고유색 (마우스를 올리면 잔기 정보 표시)'));
+      if (leg) for (const [c, l] of leg) items.push(sw(c, '', '', t(l)));
+      else items.push(h('span', { class: 'muted' }, t('잔기마다 고유색 (마우스를 올리면 잔기 정보 표시)')));
     }
   }
   if (v.showLowQuality && hasAnyTrace() && model?.traces?.some(Boolean))
-    items.push(h('span', { class: 'lg-item' }, h('span', { class: 'lg-qv', style: { borderColor: LOW_QV_COLOR } }), `AB1 품질 QV < ${v.qualityThreshold}`));
+    items.push(h('span', { class: 'lg-item' }, h('span', { class: 'lg-qv', style: { borderColor: LOW_QV_COLOR } }), t('AB1 품질 QV < {0}', v.qualityThreshold)));
   host.replaceChildren(...items);
 }
 
@@ -301,7 +302,39 @@ window.addEventListener('resize', () => {
 // sidebar toggle (small screens)
 $('sidebar-toggle').addEventListener('click', () => document.body.classList.toggle('sidebar-hidden'));
 
+// ---------------------------------------------------------------- language
+const MANUAL_URL = { ko: 'https://github.com/rundope/Allign-assist/blob/main/docs/manual.ko.md', en: 'https://github.com/rundope/Allign-assist/blob/main/docs/manual.en.md' };
+
+/** Translate the static page (elements marked with data-i18n / data-i18n-html / data-i18n-title). */
+function applyStaticText() {
+  const lang = getLang();
+  document.documentElement.lang = lang;
+  document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n!)));
+  document.querySelectorAll<HTMLElement>('[data-i18n-html]').forEach((el) => (el.innerHTML = t(el.dataset.i18nHtml!)));
+  document.querySelectorAll<HTMLElement>('[data-i18n-title]').forEach((el) => {
+    el.title = t(el.dataset.i18nTitle!);
+    if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', el.title);
+  });
+  ($('help-link') as HTMLAnchorElement).href = MANUAL_URL[lang];
+  for (const l of ['ko', 'en'] as const) {
+    const b = $(`lang-${l}`);
+    b.classList.toggle('on', l === lang);
+    b.setAttribute('aria-pressed', String(l === lang));
+  }
+}
+
+$('lang-ko').addEventListener('click', () => setLang('ko'));
+$('lang-en').addEventListener('click', () => setLang('en'));
+onLangChange(() => {
+  applyStaticText();
+  rebuildInputPanel();
+  rebuildSettingsPanel();
+  renderResult();
+  updateRunButton();
+});
+
 // ---------------------------------------------------------------- boot
+applyStaticText();
 restoreTraces(st.records.map((r) => r.id));
 rebuildInputPanel();
 rebuildSettingsPanel();
@@ -311,5 +344,5 @@ if (nonEmpty().length >= 2) scheduleAuto();
 else if (st.firstRun) {
   // first visit: open on a worked example (synthetic data) instead of an empty screen
   loadExample('mapping', true);
-  toast('예제(합성 서열)를 불러왔습니다. read_1·read_3 에는 AB1 크로마토그램이 붙어 있으니 정렬 보기에서 그 염기에 마우스를 올려 보세요.');
+  toast(t('예제(합성 서열)를 불러왔습니다. read_1·read_3 에는 AB1 크로마토그램이 붙어 있으니 정렬 보기에서 그 염기에 마우스를 올려 보세요.'));
 }

@@ -3,7 +3,8 @@ import { dnaScoring, proteinScoring, type Scoring } from './matrices';
 import { kmerDistance, mergeOnReference, progressiveAlign, type QueryPlacement } from './msa';
 import { alignPairRaw, type DPResult } from './pairwise';
 import { detectSetType, reverseComplement, type SeqRecord, type SeqType } from './seq';
-import type { Alignment, AlignSettings, AlignedRow, ProgressFn } from './types';
+import { CodedError } from './errors';
+import type { Alignment, AlignSettings, AlignedRow, Msg, ProgressFn } from './types';
 
 export const DEFAULT_ALIGN_SETTINGS: AlignSettings = {
   seqType: 'auto',
@@ -30,11 +31,11 @@ export function resolveSeqType(records: SeqRecord[], s: AlignSettings): SeqType 
 export function runAlignment(records: SeqRecord[], s: AlignSettings, onProgress?: ProgressFn): Alignment {
   const t0 = performance.now();
   const recs = records.filter((r) => r.seq.length > 0);
-  if (recs.length < 2) throw new Error('정렬하려면 서열이 2개 이상 필요합니다.');
+  if (recs.length < 2) throw new CodedError('정렬하려면 서열이 2개 이상 필요합니다.');
   const seqType = resolveSeqType(recs, s);
   const nucleotide = seqType !== 'protein';
   const scoring = scoringFor(seqType, s);
-  const warnings: string[] = [];
+  const warnings: Msg[] = [];
   const pair = { scoring, gapOpen: s.gapOpen, gapExtend: s.gapExtend };
   const rc = (seq: string) => reverseComplement(seq, seqType === 'rna');
   const isAuto = (r: SeqRecord) => (r.strand ?? 'auto') === 'auto';
@@ -66,7 +67,7 @@ export function runAlignment(records: SeqRecord[], s: AlignSettings, onProgress?
         if (!best || dp.score > best.dp.score) best = { seq, dp, strand };
       }
       if (best!.strand === -1 && isAuto(rec))
-        warnings.push(`"${rec.name}" 은(는) 역상보(reverse complement) 가닥이 더 잘 맞아 뒤집어서 정렬했습니다.`);
+        warnings.push({ key: '"{0}" 은(는) 역상보(reverse complement) 가닥이 더 잘 맞아 뒤집어서 정렬했습니다.', args: [rec.name] });
       placements.push(best!);
       onProgress?.('레퍼런스에 정렬 중', (k + 1) / others.length);
     });
@@ -83,13 +84,13 @@ export function runAlignment(records: SeqRecord[], s: AlignSettings, onProgress?
         const start = p.strand === 1 ? p.dp.bStart + 1 : r.seq.length - p.dp.bStart;
         rows.push({ id: r.id, name: r.name, aligned: merged.queries[q], start, strand: p.strand, length: r.seq.length });
         scores.push(p.dp.score);
-        if (s.mode === 'local' && p.dp.ops.length === 0) warnings.push(`"${r.name}" 은(는) 레퍼런스와 유의미한 local 매칭이 없습니다.`);
+        if (s.mode === 'local' && p.dp.ops.length === 0) warnings.push({ key: '"{0}" 은(는) 레퍼런스와 유의미한 local 매칭이 없습니다.', args: [r.name] });
         q++;
       }
     });
   } else {
     if (s.mode === 'local' || s.mode === 'fit') {
-      warnings.push('다중 서열 정렬(progressive MSA)은 global/semiglobal 만 지원하므로 semiglobal 로 실행했습니다.');
+      warnings.push({ key: '다중 서열 정렬(progressive MSA)은 global/semiglobal 만 지원하므로 semiglobal 로 실행했습니다.' });
     }
     // the first sequence sets the orientation the others are compared against
     const first = recs[0];
@@ -109,14 +110,14 @@ export function runAlignment(records: SeqRecord[], s: AlignSettings, onProgress?
       } else {
         useRc = kmerDistance(firstSeq, back, 8) < kmerDistance(firstSeq, r.seq, 8);
       }
-      if (useRc) warnings.push(`"${r.name}" 은(는) 역상보(reverse complement) 방향으로 뒤집어서 정렬했습니다.`);
+      if (useRc) warnings.push({ key: '"{0}" 은(는) 역상보(reverse complement) 방향으로 뒤집어서 정렬했습니다.', args: [r.name] });
       return useRc ? { seq: back, strand: -1 as const } : { seq: r.seq, strand: 1 as const };
     });
     const res = progressiveAlign(
       oriented.map((o) => o.seq),
       { ...pair, mode: s.mode, onProgress },
     );
-    if (res.distanceMethod === 'kmer') warnings.push('서열이 길어 guide tree 거리를 k-mer 기반으로 근사했습니다.');
+    if (res.distanceMethod === 'kmer') warnings.push({ key: '서열이 길어 guide tree 거리를 k-mer 기반으로 근사했습니다.' });
     rows = recs.map((r, i) => ({
       id: r.id,
       name: r.name,

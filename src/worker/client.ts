@@ -1,5 +1,6 @@
 // Promise wrapper around the alignment worker, with a main-thread fallback.
 import { runAlignment } from '../core/align';
+import { CodedError } from '../core/errors';
 import type { SeqRecord } from '../core/seq';
 import type { Alignment, AlignSettings, ProgressFn } from '../core/types';
 import AlignWorker from './align.worker?worker&inline';
@@ -50,7 +51,7 @@ export function align(records: SeqRecord[], settings: AlignSettings, onProgress?
       else {
         current = null;
         if (msg.type === 'result') resolve(msg.alignment as Alignment);
-        else reject(new Error(msg.message));
+        else reject(msg.key ? new CodedError(msg.key, msg.args ?? []) : new Error(msg.message));
       }
     };
     w.onerror = (ev) => {

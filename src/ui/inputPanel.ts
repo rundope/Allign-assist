@@ -1,4 +1,5 @@
 // Sequence input: cards per sequence, file loading, bulk FASTA paste and demo data.
+import { errorText, t } from '../i18n';
 import { qualitySummary } from '../core/trace';
 import { cleanSequence, detectSetType, detectType, newId, parseSequences, type SeqRecord, type StrandMode } from '../core/seq';
 import { attachTrace, detachTrace, getTrace, readAb1, traceFor } from './traceStore';
@@ -22,9 +23,9 @@ export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallba
 
   const examples = h(
     'select',
-    { class: 'btn-select', 'aria-label': '예제 불러오기' },
-    h('option', { value: '' }, '예제 ▾'),
-    ...EXAMPLES.map((e) => h('option', { value: e.key, title: e.description }, e.label)),
+    { class: 'btn-select', 'aria-label': t('예제 불러오기') },
+    h('option', { value: '' }, t('예제 ▾')),
+    ...EXAMPLES.map((e) => h('option', { value: e.key, title: t(e.description) }, t(e.label))),
   ) as HTMLSelectElement;
   examples.addEventListener('change', () => {
     if (examples.value) cb.loadExample(examples.value);
@@ -44,10 +45,10 @@ export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallba
           requestAnimationFrame(() => (host.querySelector('.seq-card:last-of-type textarea') as HTMLTextAreaElement | null)?.focus());
         },
       },
-      '+ 서열',
+      t('+ 서열'),
     ),
-    h('button', { class: 'btn small', onclick: () => fileInput.click() }, '파일 열기'),
-    h('button', { class: 'btn small', onclick: () => openPasteDialog(st, cb) }, 'FASTA 붙여넣기'),
+    h('button', { class: 'btn small', onclick: () => fileInput.click() }, t('파일 열기')),
+    h('button', { class: 'btn small', onclick: () => openPasteDialog(st, cb) }, t('FASTA 붙여넣기')),
     examples,
     st.records.length
       ? h(
@@ -59,10 +60,10 @@ export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallba
               const btn = e.currentTarget as HTMLButtonElement;
               if (btn.dataset.armed !== '1') {
                 btn.dataset.armed = '1';
-                btn.textContent = '한 번 더 누르면 삭제';
+                btn.textContent = t('한 번 더 누르면 삭제');
                 setTimeout(() => {
                   btn.dataset.armed = '';
-                  btn.textContent = '전체 삭제';
+                  btn.textContent = t('전체 삭제');
                 }, 3000);
                 return;
               }
@@ -71,7 +72,7 @@ export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallba
               cb.recordsChanged({ structural: true });
             },
           },
-          '전체 삭제',
+          t('전체 삭제'),
         )
       : null,
     fileInput,
@@ -86,8 +87,8 @@ export function buildInputPanel(host: HTMLElement, st: AppState, cb: InputCallba
       h(
         'div',
         { class: 'drop-hint' },
-        h('b', null, '서열을 추가하세요'),
-        h('div', null, 'FASTA · GenBank · EMBL · 일반 텍스트 파일을 이 영역에 끌어다 놓거나, 위의 버튼을 사용하세요.'),
+        h('b', null, t('서열을 추가하세요')),
+        h('div', null, t('FASTA · GenBank · EMBL · AB1 · 일반 텍스트 파일을 이 영역에 끌어다 놓거나, 위의 버튼을 사용하세요.')),
       ),
     );
   }
@@ -118,16 +119,16 @@ function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrat
   const len = r.seq.length;
   const type = len ? TYPE_LABEL[detectType(r.seq)] : '';
   const nucleotideCard = type !== 'Protein' && setIsNucleotide(st);
-  const nameIn = h('input', { class: 'seq-name', value: r.name, 'aria-label': '서열 이름' }) as HTMLInputElement;
+  const nameIn = h('input', { class: 'seq-name', value: r.name, 'aria-label': t('서열 이름') }) as HTMLInputElement;
   nameIn.addEventListener('change', () => {
     r.name = nameIn.value.trim() || `Sequence ${i + 1}`;
     cb.recordsChanged();
   });
-  const area = h('textarea', { rows: 3, spellcheck: 'false', placeholder: '서열 붙여넣기 (공백·숫자는 자동 제거, FASTA 여러 개도 가능)' }, r.seq) as HTMLTextAreaElement;
-  const meta = h('span', { class: 'seq-meta' }, len ? `${len.toLocaleString()} ${type === 'Protein' ? 'aa' : 'nt'} · ${type}` : '비어 있음');
+  const area = h('textarea', { rows: 3, spellcheck: 'false', placeholder: t('서열 붙여넣기 (공백·숫자는 자동 제거, FASTA 여러 개도 가능)') }, r.seq) as HTMLTextAreaElement;
+  const meta = h('span', { class: 'seq-meta' }, len ? `${len.toLocaleString()} ${type === 'Protein' ? 'aa' : 'nt'} · ${type}` : t('비어 있음'));
   area.addEventListener('input', () => {
     const cleaned = cleanSequence(area.value);
-    meta.textContent = cleaned.length ? `${cleaned.length.toLocaleString()} · ${TYPE_LABEL[detectType(cleaned)]}` : '비어 있음';
+    meta.textContent = cleaned.length ? `${cleaned.length.toLocaleString()} · ${TYPE_LABEL[detectType(cleaned)]}` : t('비어 있음');
   });
   area.addEventListener('change', () => {
     const text = area.value;
@@ -135,7 +136,7 @@ function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrat
     if (text.trim().startsWith('>') && (text.match(/^>/gm)?.length ?? 0) > 1) {
       const recs = parseSequences(text);
       st.records.splice(i, 1, ...recs);
-      toast(`${recs.length}개 서열로 나눠서 추가했습니다.`);
+      toast(t('{0}개 서열로 나눠서 추가했습니다.', recs.length));
       cb.recordsChanged({ structural: true });
       return;
     }
@@ -169,7 +170,7 @@ function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrat
       refStrategy
         ? h(
             'label',
-            { class: `ref-toggle${isRef ? ' on' : ''}`, title: '레퍼런스(기준 서열)로 지정' },
+            { class: `ref-toggle${isRef ? ' on' : ''}`, title: t('레퍼런스(기준 서열)로 지정') },
             h('input', {
               type: 'radio',
               name: 'refseq',
@@ -181,17 +182,17 @@ function seqCard(st: AppState, r: SeqRecord, i: number, isRef: boolean, refStrat
                 cb.recordsChanged({ structural: true });
               },
             }),
-            isRef ? '레퍼런스' : '기준으로',
+            isRef ? t('레퍼런스') : t('기준으로'),
           )
         : null,
       nucleotideCard ? ab1Button(r, cb) : null,
-      h('button', { class: 'icon-btn', title: '위로', onclick: () => move(-1), disabled: i === 0 }, '↑'),
-      h('button', { class: 'icon-btn', title: '아래로', onclick: () => move(1), disabled: i === st.records.length - 1 }, '↓'),
+      h('button', { class: 'icon-btn', title: t('위로'), onclick: () => move(-1), disabled: i === 0 }, '↑'),
+      h('button', { class: 'icon-btn', title: t('아래로'), onclick: () => move(1), disabled: i === st.records.length - 1 }, '↓'),
       h(
         'button',
         {
           class: 'icon-btn danger',
-          title: '삭제',
+          title: t('삭제'),
           onclick: () => {
             const refRec = st.records[st.align.referenceIndex];
             st.records.splice(i, 1);
@@ -220,14 +221,14 @@ function strandControl(st: AppState, r: SeqRecord, isRef: boolean, cb: InputCall
   const mode: StrandMode = r.strand ?? 'auto';
   // The reference is the anchor, so "auto" means "as entered" for it.
   const options: { value: StrandMode; label: string; title: string }[] = [
-    ...(isRef ? [] : [{ value: 'auto' as const, label: '자동', title: '정방향과 역상보 중 레퍼런스에 더 잘 맞는 쪽을 자동으로 고릅니다.' }]),
-    { value: 'forward', label: '정방향 →', title: '입력한 방향 그대로 정렬합니다.' },
-    { value: 'reverse', label: '역상보 ←', title: '역상보(reverse complement)로 뒤집어서 정렬합니다.' },
+    ...(isRef ? [] : [{ value: 'auto' as const, label: t('자동'), title: t('정방향과 역상보 중 레퍼런스에 더 잘 맞는 쪽을 자동으로 고릅니다.') }]),
+    { value: 'forward', label: t('정방향 →'), title: t('입력한 방향 그대로 정렬합니다.') },
+    { value: 'reverse', label: t('역상보 ←'), title: t('역상보(reverse complement)로 뒤집어서 정렬합니다.') },
   ];
   const active: StrandMode = isRef && mode === 'auto' ? 'forward' : mode;
   const group = h(
     'div',
-    { class: 'strand-seg', role: 'group', 'aria-label': `${r.name} 가닥 선택` },
+    { class: 'strand-seg', role: 'group', 'aria-label': t('{0} 가닥 선택', r.name) },
     ...options.map((o) =>
       h(
         'button',
@@ -248,7 +249,7 @@ function strandControl(st: AppState, r: SeqRecord, isRef: boolean, cb: InputCall
   );
   // show what "auto" decided in the latest alignment
   const row = mode === 'auto' && !isRef ? st.alignment?.rows.find((x) => x.id === r.id) : undefined;
-  const decided = row ? h('span', { class: `strand-result${row.strand === -1 ? ' rev' : ''}`, title: '마지막 정렬에서 자동으로 고른 방향' }, row.strand === -1 ? '→ 역상보로 판단' : '→ 정방향으로 판단') : null;
+  const decided = row ? h('span', { class: `strand-result${row.strand === -1 ? ' rev' : ''}`, title: t('마지막 정렬에서 자동으로 고른 방향') }, row.strand === -1 ? t('→ 역상보로 판단') : t('→ 정방향으로 판단')) : null;
   return h('div', { class: 'strand-wrap' }, group, decided);
 }
 
@@ -257,24 +258,24 @@ async function addFiles(st: AppState, files: File[], cb: InputCallbacks): Promis
   for (const f of files) {
     try {
       if (isAb1(f)) {
-        const t = await readAb1(f);
-        const rec: SeqRecord = { id: newId(), name: t.chrom.sampleName || f.name.replace(/\.[^.]+$/, ''), seq: t.chrom.bases };
+        const trc = await readAb1(f);
+        const rec: SeqRecord = { id: newId(), name: trc.chrom.sampleName || f.name.replace(/\.[^.]+$/, ''), seq: trc.chrom.bases };
         st.records.push(rec);
-        if (!attachTrace(rec.id, t)) toast('저장 공간이 부족해 AB1 은 새로고침하면 다시 올려야 합니다.', 'error');
+        if (!attachTrace(rec.id, trc)) toast(t('저장 공간이 부족해 AB1 은 새로고침하면 다시 올려야 합니다.'), 'error');
         added++;
         continue;
       }
       const text = await f.text();
       const recs = parseSequences(text, f.name.replace(/\.[^.]+$/, ''));
-      if (!recs.length) toast(`${f.name}: 서열을 찾지 못했습니다.`, 'error');
+      if (!recs.length) toast(t('{0}: 서열을 찾지 못했습니다.', f.name), 'error');
       st.records.push(...recs);
       added += recs.length;
     } catch (e) {
-      toast(`${f.name}: 읽기 실패 (${(e as Error).message})`, 'error');
+      toast(t('{0}: 읽기 실패 ({1})', f.name, errorText(e)), 'error');
     }
   }
   if (added) {
-    toast(`${added}개 서열을 추가했습니다.`);
+    toast(t('{0}개 서열을 추가했습니다.', added));
     cb.recordsChanged({ structural: true });
   }
 }
@@ -282,26 +283,26 @@ async function addFiles(st: AppState, files: File[], cb: InputCallbacks): Promis
 function addText(st: AppState, text: string, cb: InputCallbacks): number {
   const recs = parseSequences(text, `Sequence ${st.records.length + 1}`);
   if (!recs.length) {
-    toast('서열을 찾지 못했습니다.', 'error');
+    toast(t('서열을 찾지 못했습니다.'), 'error');
     return 0;
   }
   st.records.push(...recs);
   cb.recordsChanged({ structural: true });
-  toast(`${recs.length}개 서열을 추가했습니다.`);
+  toast(t('{0}개 서열을 추가했습니다.', recs.length));
   return recs.length;
 }
 
 function openPasteDialog(st: AppState, cb: InputCallbacks): void {
-  const area = h('textarea', { rows: 14, spellcheck: 'false', placeholder: '>seq1\nATGC...\n>seq2\nATGG...\n\nFASTA, GenBank, EMBL, 또는 서열 한 개' }) as HTMLTextAreaElement;
+  const area = h('textarea', { rows: 14, spellcheck: 'false', placeholder: t('>seq1\nATGC...\n>seq2\nATGG...\n\nFASTA, GenBank, EMBL, 또는 서열 한 개') }) as HTMLTextAreaElement;
   const dlg = h(
     'dialog',
     { class: 'paste-dialog' },
-    h('h3', null, '서열 붙여넣기'),
+    h('h3', null, t('서열 붙여넣기')),
     area,
     h(
       'div',
       { class: 'dialog-actions' },
-      h('button', { class: 'btn ghost', onclick: () => dlg.close() }, '취소'),
+      h('button', { class: 'btn ghost', onclick: () => dlg.close() }, t('취소')),
       h(
         'button',
         {
@@ -310,7 +311,7 @@ function openPasteDialog(st: AppState, cb: InputCallbacks): void {
             if (addText(st, area.value, cb)) dlg.close();
           },
         },
-        '추가',
+        t('추가'),
       ),
     ),
   ) as HTMLDialogElement;
@@ -335,44 +336,44 @@ function ab1Button(r: SeqRecord, cb: InputCallbacks): HTMLElement {
     input.value = '';
     if (!f) return;
     try {
-      const t = await readAb1(f);
-      if (!r.seq) r.seq = t.chrom.bases; // empty card: take the base calls as the sequence
-      if (!attachTrace(r.id, t)) toast('저장 공간이 부족해 AB1 은 새로고침하면 다시 올려야 합니다.', 'error');
+      const trc = await readAb1(f);
+      if (!r.seq) r.seq = trc.chrom.bases; // empty card: take the base calls as the sequence
+      if (!attachTrace(r.id, trc)) toast(t('저장 공간이 부족해 AB1 은 새로고침하면 다시 올려야 합니다.'), 'error');
       const linked = traceFor(r.id, r.seq);
       if (linked && linked.link.identity < 0.8)
-        toast(`"${r.name}" 서열과 AB1 염기 호출이 ${Math.round(linked.link.identity * 100)}% 만 맞습니다. 같은 샘플의 파일인지 확인하세요.`, 'error');
-      else toast(`${f.name} 을(를) "${r.name}" 에 연결했습니다.`);
+        toast(t('"{0}" 서열과 AB1 염기 호출이 {1}% 만 맞습니다. 같은 샘플의 파일인지 확인하세요.', r.name, Math.round(linked.link.identity * 100)), 'error');
+      else toast(t('{0} 을(를) "{1}" 에 연결했습니다.', f.name, r.name));
       cb.recordsChanged({ structural: true });
     } catch (e) {
-      toast(`${f.name}: ${(e as Error).message}`, 'error');
+      toast(`${f.name}: ${errorText(e)}`, 'error');
     }
   });
   const has = !!getTrace(r.id);
-  const btn = h('button', { type: 'button', class: `icon-btn ab1-btn${has ? ' on' : ''}`, title: has ? 'AB1 크로마토그램 바꾸기' : 'AB1 크로마토그램 파일 붙이기 (선택)', 'aria-label': 'AB1 파일 붙이기', onclick: () => input.click() });
+  const btn = h('button', { type: 'button', class: `icon-btn ab1-btn${has ? ' on' : ''}`, title: has ? t('AB1 크로마토그램 바꾸기') : t('AB1 크로마토그램 파일 붙이기 (선택)'), 'aria-label': t('AB1 파일 붙이기'), onclick: () => input.click() });
   btn.innerHTML = WAVE_ICON;
   return h('span', { class: 'ab1-wrap' }, btn, input);
 }
 
 /** Card-foot chip describing the attached chromatogram. */
 function traceChip(st: AppState, r: SeqRecord, cb: InputCallbacks): HTMLElement | null {
-  const t = traceFor(r.id, r.seq);
-  if (!t) return null;
-  const qs = qualitySummary(t.chrom, st.view.qualityThreshold);
-  const ok = t.link.identity >= 0.8;
+  const trc = traceFor(r.id, r.seq);
+  if (!trc) return null;
+  const qs = qualitySummary(trc.chrom, st.view.qualityThreshold);
+  const ok = trc.link.identity >= 0.8;
   const chip = h(
     'div',
-    { class: `trace-chip${ok ? '' : ' warn'}`, title: `${t.fileName}\n염기 호출 ${t.chrom.bases.length}개 · 서열과 ${Math.round(t.link.identity * 100)}% 일치${t.link.rc ? ' (역상보)' : ''}` },
+    { class: `trace-chip${ok ? '' : ' warn'}`, title: t('{0}\n염기 호출 {1}개 · 서열과 {2}% 일치{3}', trc.fileName, trc.chrom.bases.length, Math.round(trc.link.identity * 100), trc.link.rc ? t(' (역상보)') : '') },
     h('span', { class: 'tc-icon', html: WAVE_ICON }),
-    h('span', { class: 'tc-name' }, t.fileName),
-    h('span', { class: 'tc-meta' }, qs.mean === null ? '품질값 없음' : `평균 QV ${qs.mean.toFixed(0)} · QV<${st.view.qualityThreshold} ${qs.low}개`),
-    ok ? null : h('span', { class: 'tc-warn' }, `서열과 ${Math.round(t.link.identity * 100)}% 일치`),
+    h('span', { class: 'tc-name' }, trc.fileName),
+    h('span', { class: 'tc-meta' }, qs.mean === null ? t('품질값 없음') : t('평균 QV {0} · QV<{1} {2}개', qs.mean.toFixed(0), st.view.qualityThreshold, qs.low)),
+    ok ? null : h('span', { class: 'tc-warn' }, t('서열과 {0}% 일치', Math.round(trc.link.identity * 100))),
     h(
       'button',
       {
         type: 'button',
         class: 'icon-btn danger',
-        title: 'AB1 연결 해제',
-        'aria-label': 'AB1 연결 해제',
+        title: t('AB1 연결 해제'),
+        'aria-label': t('AB1 연결 해제'),
         onclick: () => {
           detachTrace(r.id);
           cb.recordsChanged({ structural: true });

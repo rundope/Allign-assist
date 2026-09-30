@@ -192,15 +192,15 @@ export function computePairStats(
   const prop = (key: string, label: string, hint: string) =>
     properties.push({ key, label, hint, agree: agree[key] ?? 0, total: total[key] ?? 0 });
   if (nucleotide) {
-    prop('purpyr', 'Purine / Pyrimidine 일치', '같은 염기 종류(A,G = purine / C,T = pyrimidine)끼리 짝지어진 비율. 불일치 중 transition 은 여기서 일치로 셈.');
-    prop('sw', 'Strong / Weak (GC vs AT) 일치', 'G·C(수소결합 3개)와 A·T(2개) 구분이 유지된 비율.');
-    prop('mk', 'Amino / Keto 일치', 'A·C(amino)와 G·T(keto) 구분이 유지된 비율.');
-    prop('iupac', 'IUPAC 호환 일치', 'N, R, Y 같은 모호 코드를 "같은 염기일 수 있음"으로 인정했을 때의 일치 비율.');
+    prop('purpyr', 'Purine / Pyrimidine', '같은 염기 종류(A,G = purine / C,T = pyrimidine)끼리 짝지어진 비율. 불일치 중 transition 은 여기서 일치로 셈.');
+    prop('sw', 'Strong / Weak (GC vs AT)', 'G·C(수소결합 3개)와 A·T(2개) 구분이 유지된 비율.');
+    prop('mk', 'Amino / Keto', 'A·C(amino)와 G·T(keto) 구분이 유지된 비율.');
+    prop('iupac', 'IUPAC 호환', 'N, R, Y 같은 모호 코드를 "같은 염기일 수 있음"으로 인정했을 때의 일치 비율.');
   } else {
-    prop('strong', 'Clustal strong group 보존', '동일하거나 Clustal 강한 보존 그룹(STA, NEQK, MILV, FYW …) 안에서의 치환 비율.');
-    prop('class', '물리화학적 계열 일치', `Lehninger 5계열(지방족 / 방향족 / 극성 / 양전하 / 음전하)이 같은 비율.`);
-    prop('charge', '전하 일치', '양전하(K,R,H) / 음전하(D,E) / 중성이 유지된 비율.');
-    prop('hydro', '소수성 일치 (Kyte-Doolittle)', 'Kyte-Doolittle hydropathy 부호(소수성 > 0 / 친수성 ≤ 0)가 유지된 비율.');
+    prop('strong', 'Clustal strong group', '동일하거나 Clustal 강한 보존 그룹(STA, NEQK, MILV, FYW …) 안에서의 치환 비율.');
+    prop('class', '물리화학적 계열', 'Lehninger 5계열(지방족 / 방향족 / 극성 / 양전하 / 음전하)이 같은 비율.');
+    prop('charge', '전하', '양전하(K,R,H) / 음전하(D,E) / 중성이 유지된 비율.');
+    prop('hydro', '소수성 (Kyte-Doolittle)', 'Kyte-Doolittle hydropathy 부호(소수성 > 0 / 친수성 ≤ 0)가 유지된 비율.');
   }
   const gc = (s: string) => {
     let g = 0;

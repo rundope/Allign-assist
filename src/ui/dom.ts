@@ -1,4 +1,5 @@
 // Tiny DOM helpers and bound form controls.
+import { t } from '../i18n';
 
 type Child = Node | string | number | null | undefined | false;
 
@@ -102,8 +103,8 @@ export function colorInput(get: () => string, set: (v: string) => void, o: { all
   const wrap = h('span', { class: 'color-in' }, input);
   let none: HTMLInputElement | null = null;
   if (o.allowNone) {
-    none = h('input', { type: 'checkbox', checked: !get(), title: '색 없음' }) as HTMLInputElement;
-    wrap.append(h('label', { class: 'none-toggle', title: '색 없음 (투명)' }, none, '없음'));
+    none = h('input', { type: 'checkbox', checked: !get(), title: t('색 없음') }) as HTMLInputElement;
+    wrap.append(h('label', { class: 'none-toggle', title: t('색 없음 (투명)') }, none, t('없음')));
     none.addEventListener('change', () => {
       input.disabled = none!.checked;
       set(none!.checked ? '' : input.value);
@@ -139,3 +140,21 @@ export function toast(msg: string, kind: 'info' | 'error' = 'info'): void {
   setTimeout(() => el.remove(), 4300);
 }
 
+
+/**
+ * Translate a sentence and drop nodes into its {0}, {1}… slots, so a whole sentence is one
+ * translation (word order differs between languages) while names can still be bold etc.
+ */
+export function tpl(key: string, ...args: (Node | string | number)[]): (Node | string)[] {
+  const out: (Node | string)[] = [];
+  const parts = t(key).split(/\{(\d+)\}/);
+  parts.forEach((p, i) => {
+    if (i % 2 === 0) {
+      if (p) out.push(p);
+    } else {
+      const a = args[Number(p)];
+      if (a !== undefined && a !== '') out.push(typeof a === 'number' ? String(a) : a);
+    }
+  });
+  return out;
+}

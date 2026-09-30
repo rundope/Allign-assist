@@ -3,6 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "description": "Readable, customizable DNA/protein sequence alignment viewer (pairwise, reference-anchored and progressive MSA).",
+  "license": "MIT",
+  "homepage": "https://rundope.github.io/Allign-assist/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rundope/Allign-assist.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

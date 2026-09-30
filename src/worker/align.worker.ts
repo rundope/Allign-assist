@@ -22,6 +22,7 @@ self.onmessage = (e: MessageEvent<Req>) => {
     });
     self.postMessage({ id, type: 'result', alignment });
   } catch (err) {
-    self.postMessage({ id, type: 'error', message: (err as Error).message ?? String(err) });
+    const e = err as Error & { key?: string; args?: (string | number)[] };
+    self.postMessage({ id, type: 'error', message: e.message ?? String(err), key: e.key, args: e.args });
   }
 };

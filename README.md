@@ -9,6 +9,10 @@ DNA·RNA·단백질 서열 정렬을 **읽기 쉽게** 보여주는 뷰어입니
 
 **바로 사용하기:** https://rundope.github.io/Allign-assist/
 
+**사용 설명서:** [한국어](docs/manual.ko.md) · [English](docs/manual.en.md)
+
+화면 오른쪽 위의 `한국어 | English` 버튼으로 UI 언어를 바꿀 수 있습니다. 처음 열 때는 브라우저 언어를 따르고, 고른 언어는 브라우저에 저장됩니다.
+
 ## 실행
 
 ```bash
@@ -50,7 +54,10 @@ src/core/      정렬·통계 엔진 (DOM 의존성 없음, Web Worker에서 실
 src/render/    RenderModel(셀 분류·스타일) → SVG 블록, overview canvas, lazy viewer
 src/ui/        입력·설정·통계 패널, 내보내기, 상태 저장(localStorage)
 src/worker/    정렬 Web Worker와 client (Worker를 쓸 수 없으면 메인 스레드에서 실행)
+src/i18n.ts    언어 전환. 한국어 원문이 key이고 영어 번역은 src/i18n.en.ts에 있습니다
 ```
+
+UI 문자열은 `t('한국어 원문 {0}', 값)` 형태로 씁니다. `tests/i18n.test.ts`는 모든 한국어 문자열에 영어 번역이 있는지, placeholder가 맞는지, 쓰이지 않는 번역이 남아 있지 않은지 검사합니다.
 
 ## 정확성 검증
 
@@ -70,3 +77,7 @@ src/worker/    정렬 Web Worker와 client (Worker를 쓸 수 없으면 메인 �
 - DP 메모리는 셀당 1 byte이고 최대 1.5억 셀까지 계산합니다(예: 10 kb × 15 kb). 이보다 긴 게놈 규모 서열은 아직 지원하지 않습니다.
 - Progressive MSA는 반복 정제(iterative refinement) 없이 한 번만 정렬합니다. 서열이 수십 개 이상이거나 먼 관계면 Clustal Omega / MAFFT보다 정확도가 낮을 수 있습니다.
 - 예제 서열은 모두 **합성 데이터**이며 실제 유전자·단백질이 아닙니다.
+
+## 라이선스
+
+[MIT License](LICENSE). 함께 배포하는 제3자 자료(NCBI 치환 행렬, Biopython 테스트용 AB1 파일)의 출처와 라이선스는 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 있습니다.
